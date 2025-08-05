@@ -31,7 +31,7 @@ if( isset( $_GET['reserve_id'] ) ){
 		if( $file_size ){
 			$fp = @fopen( $temp_ts, 'r' );
 			if( $fp !== FALSE ) {
-				$send_cnt = $all_cnt = (int)$file_size / 188;
+				$send_cnt = $all_cnt = (int)( $file_size / 188 );
 				if( $start_time ){
 					$seek_cnt  = (int)( ( $all_cnt * $start_time ) / ( $duration + $settings->former_time + $settings->extra_time ) );
 					$send_cnt -= $seek_cnt;

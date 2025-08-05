@@ -13,7 +13,6 @@ class Reservation {
 	public static function simple( $program_id , $autorec = 0, $mode = 0, $discontinuity=0 ) {
 		global $settings;
 
-		$rval = 0;
 		try {
 			$prec       = new DBRecord( PROGRAM_TBL, 'id', $program_id );
 			$start_time = toTimestamp( $prec->starttime );
@@ -23,7 +22,7 @@ class Reservation {
 				$split_time = (int)$keyword->split_time;
 				if( $split_time > 0 ){
 					$filename   = $keyword->filename_format!=='' ? $keyword->filename_format : $settings->filename_format;
-					$split_loop = ( $end_time - $start_time ) / $split_time;
+					$split_loop = (int)(( $end_time - $start_time ) / $split_time);
 					do{
 						$magic_c = strpos( $filename, '%TL_SB' );
 						if( $magic_c !== FALSE ){
@@ -74,18 +73,19 @@ class Reservation {
 						list( $title, $sbtls ) = explode( ' #', $prec->title );
 						if( strpos( $prec->title, '」#' ) !== FALSE ){
 							$split_tls = explode( '」#', $sbtls );
-							$title .= ' #'.( count($split_tls)>=$loop ? $split_tls[$loop-1] : $split_tls[count($split_tls)-1].'('.$loop.')' );
+							$title    .= ' #'.( count($split_tls)>=$loop ? $split_tls[$loop-1] : $split_tls[count($split_tls)-1].'('.$loop.')' );
 							if( $loop < count( $split_tls ) )
 								$title .= '」';
 						}else{
 							$split_tls = explode( '#', $sbtls );
-							$title .= ' #'.( count($split_tls)>=$loop ? $split_tls[$loop-1] : $split_tls[count($split_tls)-1].'('.$loop.')' );
+							$title    .= ' #'.( count($split_tls)>=$loop ? $split_tls[$loop-1] : $split_tls[count($split_tls)-1].'('.$loop.')' );
 						}
 					}else{
 						$title = $prec->title;
 						if( $split_loop > 1 )
 							$title .= '('.$loop.')';
 					}
+					$rval = 0;
 					try {
 						$rval = self::custom(
 							toDatetime( $start_time ),
@@ -1339,14 +1339,19 @@ file_put_contents( '/tmp/debug.txt', $process_log."\n", FILE_APPEND );
 															$scount = (int)$sub_piece;							// 強引？
 															if( $scount>=0 && $scount <= $st_count ){
 																$num_cmp = sprintf( '%d*', $scount );
-																if( strpos( $st_list[$scount-1], $num_cmp ) !== FALSE ){
-																	if( $scount === $st_count ){
-																		list( $subsplit, $dust ) = explode( '</SubTitles>', $st_list[$scount-1] );
-																		list( , $subtitle )      = explode( $num_cmp, $subsplit );
-																	}else
-																		list( , $subtitle ) = explode( $num_cmp, $st_list[$scount-1] );
-																	$filename = str_replace( sprintf( '#%02d「」', $scount ), sprintf( '#%02d「%s」', $scount, $subtitle ), $filename );
-																}
+																if( $scount>0 && strpos( $st_list[$scount-1], $num_cmp )!= FALSE )
+																	$sub_zero = 0;
+																else
+																	if( $scount<$st_count && strpos( $st_list[$scount], $num_cmp )!==FALSE )
+																		$sub_zero = 1;
+																	else
+																		continue;
+																if( $scount+$sub_zero === $st_count ){
+																	list( $subsplit, $dust ) = explode( '</SubTitles>', $st_list[$scount+$sub_zero-1] );
+																	list( , $subtitle )      = explode( $num_cmp, $subsplit );
+																}else
+																	list( , $subtitle ) = explode( $num_cmp, $st_list[$scount+$sub_zero-1] );
+																$filename = str_replace( sprintf( '#%02d「」', $scount ), sprintf( '#%02d「%s」', $scount, $subtitle ), $filename );
 															}
 														}
 													}

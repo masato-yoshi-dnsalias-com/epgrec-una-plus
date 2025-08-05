@@ -42,7 +42,7 @@ $settings = Settings::factory();
 $now_time = time();
 
 $height_per_hour = (int)$settings->height_per_hour;
-$height_per_sec  = $height_per_hour / 3600;
+$height_per_sec  = (float)$height_per_hour / 3600;
 
 // パラメータの処理
 // 表示する長さ（時間）
@@ -384,7 +384,7 @@ $smarty->assign( 'programs', $programs );
 $smarty->assign( 'ch_set_width', $ch_set_width );
 $smarty->assign( 'chs_width', $chs_width );
 $smarty->assign( 'height_per_hour', $height_per_hour );
-$smarty->assign( 'height_per_min', $height_per_hour / 60 );
+$smarty->assign( 'height_per_min', (int)($height_per_hour / 60) );
 $smarty->assign( 'num_ch', $num_ch );
 $smarty->assign( 'num_all_ch' , $num_all_ch );
 $smarty->assign( 'single_ch', $single_ch );

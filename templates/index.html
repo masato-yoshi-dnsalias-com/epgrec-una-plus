@@ -557,6 +557,11 @@
 		MDA.Cookie.CookieName = 'tvProgmas_';
 		CTG.toggle();
 		tvtimes_scroll();
+
+		var true_height = $("#ch_title_bar").height() + $("#float_follows").height() + 10;
+		$("#float_titles").height(true_height);
+		$("#float_titles_dummy").height(true_height);
+
 		prg_hover();
 		var DG = $('#floatBox4Dialog');
 		DG.dialog({title:'録画予約',width:600});
@@ -729,7 +734,7 @@ h2 {padding: 4px}
  {/literal}</script>
 {/if}
 
-<div id="float_titles" style="width: {math equation="x + 60" x=$chs_width }px;height:150px;">
+<div id="float_titles" style="width: {math equation="x + 60" x=$chs_width }px;">
 <div id="float_follows">
 
  <div class="set" style="background-color:white; font-size:150%; font-weight:bold; float:none; margin:0;">
@@ -894,7 +899,7 @@ h2 {padding: 4px}
 <div id="prg_info"><div class="dummy">&nbsp;</div></div>
 </div>
 
-<div id="float_titles_dummy" style="width:{math equation="x + 60" x=$chs_width}px;height:150px;">&nbsp;</div>
+<div id="float_titles_dummy" style="width:{math equation="x + 60" x=$chs_width}px;">&nbsp;</div>
 
 
 <div id="tvtable">

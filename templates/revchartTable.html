@@ -303,6 +303,11 @@
 	$(document).ready(function () {
 		MDA.Cookie.CookieName = 'tvProgmas_';
 		tvtimes_scroll();
+
+		var true_height = $("#ch_title_bar").height() + $("#float_follows").height() + 10;
+		$("#float_titles").height(true_height);
+		$("#float_titles_dummy").height(true_height);
+
 		prg_hover();
 		var DG = $('#floatBox4Dialog');
 		DG.dialog({title:'録画予約',width:600});
@@ -459,7 +464,7 @@ h2 {padding: 4px}
 </head>
 
 <body>
-<div id="float_titles" style="width: {math equation="x + 60" x=$chs_width }px;height:150px;">
+<div id="float_titles" style="width: {math equation="x + 60" x=$chs_width }px;">
 <div id="float_follows">
 
 <div class="set" style="background-color:white; float:none; display:inline-block; margin:0;">
@@ -569,7 +574,7 @@ h2 {padding: 4px}
 <div id="prg_info"><div class="dummy">&nbsp;</div></div>
 </div>
 
-<div id="float_titles_dummy" style="width:{math equation="x + 60" x=$chs_width}px;height:150px;">&nbsp;</div>
+<div id="float_titles_dummy" style="width:{math equation="x + 60" x=$chs_width}px;">&nbsp;</div>
 
 
 <div id="tvtable">
@@ -594,7 +599,7 @@ h2 {padding: 4px}
           <div class="prg_channel">{if $item.channel}{$item.channel}{/if}</div>
           <div class="prg_subtitle">
             <div style="text-align:left; float:left;">{if $item.starttime}{$item.starttime}({if $item.duration>=3600}{math equation="x / 3600" x=$item.duration format="%d"}h{/if}{$item.duration|date_format:"%Mm"}{if $item.duration%60}{$item.duration|date_format:"%Ss"}{/if}){/if}</div>
-            <div style="text-align:right;">{if $item.prios}<a style="color:white; background-color:blue; padding:1px 2px;">P({$item.prios})</a>{/if}</div>
+            <div style="text-align:right;">{if $item.prios}<a style="color:white; background-color:blue; padding:1px 2px;">{$item.prios}</a>{/if}</div>
           </div>
           <div class="prg_title">{$item.title|escape}</div>
           <div class="prg_desc" style="clear:left;">{$item.description|escape}</div>

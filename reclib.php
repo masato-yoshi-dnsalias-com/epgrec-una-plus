@@ -210,6 +210,12 @@ function killtree( $rarr, $pid, $force=TRUE, $safe_pid=0 )
 	else{
 		posix_kill( $pid, 15 );		// 終了
 		posix_kill( $pid, 18 );		// 再開
+		usleep( 100*1000 );
+		if( posix_kill( $pid, 0 ) === FALSE ){
+			$errno = posix_get_last_error();
+			if( $errno != ESRCH )
+				posix_kill( $pid, 9 );		// 強制終了
+		}
 	}
 	return TRUE;
 }
@@ -904,9 +910,10 @@ function exe_start( $cmd, $wait_lp, $start_wt=0, $rst_view=TRUE ){
 					$rststk .= '<br>'.str_replace( "\n", '<br>', $rstring );
 				fclose( $pipes[2] );
 				proc_close( $pro );
-				if( $st['exitcode'] !== 0 )
+				if( $st['exitcode'] !== 0 ){
 					reclog( 'command error['.$st['exitcode'].'] '.$cmd.$rststk, EPGREC_WARN );
-				else
+					return 2;
+				}else
 					if( $rst_view && $rststk!=='' )
 						reclog( 'command rst['.$cmd.']'.$rststk, EPGREC_WARN );
 				return 0;

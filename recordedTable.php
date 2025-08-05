@@ -94,7 +94,7 @@ if( isset($_REQUEST['full_mode']) )
 	$full_mode = $_REQUEST['full_mode']==1;
 
 if( isset($_REQUEST['order']) ){
-	$order = $_REQUEST['order'];
+	$order = str_replace( ' ', '+', $_REQUEST['order'] );
 }
 
 if( isset($_POST['do_delete']) ){
@@ -391,6 +391,11 @@ try{
 										'" style="color: white; background-color: royalblue;">▼</a>';
 				if( $r['complete'] == 1 )
 					$arr['view_set'] .= ' <input type="button" value="D" title="ダウンロード" onClick="javascript:PRG.downdialog(\''.$arr['id'].'\',\''.$arr['duration'].'\')" style="padding:0;">';
+				// マニュアル・トランスコード
+//				if( $act_trans ){
+//					$arr['view_set'] .= ' <a href="manualtrans.php?reserve_id='.$r['id'].'&trans=ON" title="マニュアル・トランスコード" id="trans_url_'.($key-$start_record).
+//										'" style="color: white; background-color: royalblue;">■</a>';
+//				}
 			}else
 				$arr['view_set'] = '';
 			if( $act_trans ){
@@ -452,7 +457,7 @@ try{
 	$smarty->assign('sitetitle','録画済一覧' );
 	$smarty->assign( 'menu_list', link_menu_create() );
 	$smarty->assign( 'spool_freesize', spool_freesize() );
-	$smarty->assign( 'pager', $full_mode ? '' : make_pager( 'recordedTable.php', $separate_records, $stations[0]['count'], $page, $pager_option.$order.'&' ) );
+	$smarty->assign( 'pager', $full_mode ? '' : make_pager( 'recordedTable.php', $separate_records, $stations[0]['count'], $page, $pager_option.'order='.$order.'&' ) );
 	$smarty->assign( 'full_mode', $full_mode );
 	$smarty->assign( 'pager_option', 'recordedTable.php?'.$pager_option );
 	$smarty->assign( 'order', $order );
@@ -468,6 +473,7 @@ try{
 	$smarty->assign( 'TRANSCODE_STREAM', $transcode );
 	$smarty->assign( 'TRANS_SCRN_ADJUST', $transcode && TRANS_SCRN_ADJUST ? 1 : 0 );
 	$smarty->assign( 'transsize_set', $TRANSSIZE_SET );
+//	$smarty->assign( 'trans_mode', $act_trans ? $TRANS_MODE : FALSE );
 	$smarty->display('recordedTable.html');
 }
 catch( exception $e ){

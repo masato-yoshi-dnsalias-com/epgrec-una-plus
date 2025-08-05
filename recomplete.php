@@ -30,13 +30,13 @@ function get_syslog( $get_time )
 		$set_time = (int)(($get_time+1)/10) * 10;
 		$sys_logs = file( '/var/log/syslog', FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES );
 		$put_logs = array();
-		$seach_wd = date('M ',$be_time).sprintf( '% 2s', date('j',$be_time) ).date(' H:i:',$be_time).(($be_time%60)/10);
+		$seach_wd = date('M ',$be_time).sprintf( '% 2s', date('j',$be_time) ).date(' H:i:',$be_time).((int)(($be_time%60)/10));
 		foreach( $sys_logs as $logline ){
 			if( strpos( $logline, $seach_wd ) !== FALSE )
 				$put_logs[] = $logline;
 		}
 		if( $be_time !== $set_time ){
-			$seach_wd = date('M ',$set_time).sprintf( '% 2s', date('j',$set_time) ).date(' H:i:',$set_time).(($set_time%60)/10);
+			$seach_wd = date('M ',$set_time).sprintf( '% 2s', date('j',$set_time) ).date(' H:i:',$set_time).((int)(($set_time%60)/10));
 			foreach( $sys_logs as $logline ){
 				if( strpos( $logline, $seach_wd ) !== FALSE )
 					$put_logs[] = $logline;

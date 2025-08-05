@@ -582,7 +582,8 @@ table#extra_strings.list {display: none;}
 <input type="hidden" name="criterion_enab" value="{$criterion_enab}">
 <input type="hidden" name="smart_repeat" value="{$smart_repeat}">
 <input type="hidden" name="split_time" value="{$split_time}">
-<b>検索語句:</b>(<input type="checkbox" id="use_regexp" name="use_regexp" value="1" {if $use_regexp}checked="checked"{/if}><label for="use_regexp">正規表現</label> <input type="checkbox" id="collate_ci" name="collate_ci" value="1" title="正規表現と併用不可" {if $collate_ci}checked="checked"{/if}><label for="collate_ci">全半角同一視</label> <input type="checkbox" id="ena_title" name="ena_title" value="1" {if $ena_title}checked="checked"{/if}><label for="ena_title">タイトル</label> <input type="checkbox" id="ena_desc" name="ena_desc" value="1" {if $ena_desc}checked="checked"{/if}><label for="ena_desc">概要</label>)<br>
+<b>検索語句:</b>(<input type="checkbox" id="use_regexp" name="use_regexp" value="1" {if $use_regexp}checked="checked"{/if}><label for="use_regexp">正規表現</label> <input type="checkbox" id="collate_ci" name="collate_ci" value="1" title="全半角・大小文字・ひらカナを同一視します。
+正規表現との併用不可" {if $collate_ci}checked="checked"{/if}><label for="collate_ci">同一視検索</label> <input type="checkbox" id="ena_title" name="ena_title" value="1" {if $ena_title}checked="checked"{/if}><label for="ena_title">タイトル</label> <input type="checkbox" id="ena_desc" name="ena_desc" value="1" {if $ena_desc}checked="checked"{/if}><label for="ena_desc">概要</label>)<br>
 <input type="text" name="search" value="{$search|escape}" class="example1" title="通常検索時のワイルドカードは'%'・半角スペースは'_'です。 NOT検索は語彙冒頭に'-'を付加してください。"><br>
 <b>放送種別:</b>(
   {foreach from=$types item=type}

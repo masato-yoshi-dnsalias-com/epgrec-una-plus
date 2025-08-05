@@ -76,7 +76,7 @@ $smarty->assign( 'cats', $cats );
 
 
 $height_per_hour = (int)$settings->height_per_hour;
-$height_per_sec  = $height_per_hour / 3600;
+$height_per_sec  = (float)$height_per_hour / 3600;
 
 if( $single_tuner !== FALSE ){
 	$lp_lmt = 8;
@@ -125,7 +125,7 @@ for( $st=0; $st<$lp_lmt; $st++ ){
 				if( $start > $prev_end ){
 					$program['list'][$num]['genre']       = 0;
 					$program['list'][$num]['sub_genre']   = 0;
-					$program['list'][$num]['height']      = (int)( ($start-$prev_end) * $height_per_sec );
+					$program['list'][$num]['height']      = (int)round( ($start-$prev_end) * $height_per_sec );
 					$program['list'][$num]['title']       = '';
 					$program['list'][$num]['starttime']   = '';
 					$program['list'][$num]['description'] = '';
@@ -147,7 +147,7 @@ for( $st=0; $st<$lp_lmt; $st++ ){
 				$program['list'][$num]['genre']       = $prg['category_id'];
 				$program['list'][$num]['sub_genre']   = $prg['sub_genre'];
 				$program['list'][$num]['height']      =
-					(int)( ( ($prev_end>=$ch_last_time ? $ch_last_time : $prev_end) - ($start<=$ch_top_time ? $ch_top_time : $start) ) * $height_per_sec );
+					(int)round( ( ($prev_end>=$ch_last_time ? $ch_last_time : $prev_end) - ($start<=$ch_top_time ? $ch_top_time : $start) ) * $height_per_sec );
 				$program['list'][$num]['title']       = $prg['title'];
 				$program['list'][$num]['starttime']   = date('H:i:s', $start );
 				$program['list'][$num]['description'] = $prg['description'];
@@ -185,7 +185,7 @@ for( $st=0; $st<$lp_lmt; $st++ ){
 				}else
 					$program['list'][$num]['autorec'] = 0;
 				$program['list'][$num]['rec_id']  = $prg['id'];
-				$program['list'][$num]['prios']   = $prg['priority'];
+				$program['list'][$num]['prios']   = 'P('.$prg['priority'].')';
 				$program['list'][$num]['keyword'] = putProgramHtml( $prg['title'], $prg['type'], $prg['channel_id'], $prg['category_id'], $prg['sub_genre'] );
 				$num++;
 			}
@@ -193,7 +193,7 @@ for( $st=0; $st<$lp_lmt; $st++ ){
 			if( $ch_last_time > $prev_end ){
 				$program['list'][$num]['genre']       = 0;
 				$program['list'][$num]['sub_genre']   = 0;
-				$program['list'][$num]['height']      = (int)( ( $ch_last_time - $prev_end ) * $height_per_sec );
+				$program['list'][$num]['height']      = (int)round( ( $ch_last_time - $prev_end ) * $height_per_sec );
 				$program['list'][$num]['title']       = '';
 				$program['list'][$num]['starttime']   = '';
 				$program['list'][$num]['description'] = '';
@@ -316,7 +316,7 @@ $smarty->assign( 'programs', $programs );
 $smarty->assign( 'ch_set_width', $ch_set_width );
 $smarty->assign( 'chs_width', $chs_width );
 $smarty->assign( 'height_per_hour', $height_per_hour );
-$smarty->assign( 'height_per_min', $height_per_hour / 60 );
+$smarty->assign( 'height_per_min', (int)($height_per_hour / 60) );
 $smarty->assign( 'single_tuner', $single_tuner!==FALSE ? TRUE : FALSE );
 $smarty->assign( 'dayweeks', array('日','月','火','水','木','金','土') );
 $smarty->assign( '__nowDay', date('d', $now_time) );
