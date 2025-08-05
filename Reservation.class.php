@@ -66,39 +66,25 @@ class Reservation {
 				if( ( (int)$prec->rec_ban_parts & $bit_pic ) === 0 ){		// 分割自動予約禁止フラグ確認
 					if( $end_time > $end_org )
 						$end_time = $end_org;
-					switch( $split_title ){
-						case '%TITLE':
-							if( strpos( $prec->title, '/' ) !== FALSE ){
-								$split_tls = explode( '/', $prec->title );
-								$pictitle  = count($split_tls)>=$loop ? $split_tls[$loop-1] : $split_tls[count($split_tls)-1].'('.$loop.')';
-								$title     = mb_str_replace( '%TITLE'.$tl_num.'%', $pictitle, $filename );
-							}else{
-								$pictitle = $prec->title;
-								if( $split_loop > 1 )
-									$pictitle .= '('.$loop.')';
-								$title = mb_str_replace( '%TITLE'.$tl_num.'%', $pictitle, $filename );
-							}
-							break;
-						case '%TL_SB':
-							if( strpos( $prec->title, '」#' ) !== FALSE ){
-								list( $pictitle, $sbtls ) = explode( ' #', $prec->title );
-								$split_tls = explode( '」#', $sbtls );
-								$pictitle .= ' #'.( count($split_tls)>=$loop ? $split_tls[$loop-1] : $split_tls[count($split_tls)-1].'('.$loop.')' );
-								if( $loop < count( $split_tls ) )
-									$pictitle .= '」';
-								$title = mb_str_replace( '%TL_SB'.$tl_num.'%', $pictitle, $filename );
-							}else{
-								$pictitle = $prec->title;
-								if( $split_loop > 1 )
-									$pictitle .= '('.$loop.')';
-								$title = mb_str_replace( '%TL_SB'.$tl_num.'%', $pictitle, $filename );
-							}
-							break;
-						default:
-							$title = $prec->title;
-							if( $split_loop > 1 )
-								$title .= '('.$loop.')';
-							break;
+					if( $split_title==='%TITLE' && strpos( $prec->title, '/' )!==FALSE ){
+						$split_tls = explode( '/', $prec->title );
+						$title     = count($split_tls)>=$loop ? $split_tls[$loop-1] : $split_tls[count($split_tls)-1].'('.$loop.')';
+					}else
+					if( $split_title==='%TL_SB' && strpos( $prec->title, ' #' )!==FALSE ){
+						list( $title, $sbtls ) = explode( ' #', $prec->title );
+						if( strpos( $prec->title, '」#' ) !== FALSE ){
+							$split_tls = explode( '」#', $sbtls );
+							$title .= ' #'.( count($split_tls)>=$loop ? $split_tls[$loop-1] : $split_tls[count($split_tls)-1].'('.$loop.')' );
+							if( $loop < count( $split_tls ) )
+								$title .= '」';
+						}else{
+							$split_tls = explode( '#', $sbtls );
+							$title .= ' #'.( count($split_tls)>=$loop ? $split_tls[$loop-1] : $split_tls[count($split_tls)-1].'('.$loop.')' );
+						}
+					}else{
+						$title = $prec->title;
+						if( $split_loop > 1 )
+							$title .= '('.$loop.')';
 					}
 					try {
 						$rval = self::custom(

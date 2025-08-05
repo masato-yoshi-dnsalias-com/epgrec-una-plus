@@ -747,7 +747,7 @@ h2 {padding: 4px}
 </div>
 
 <div id="time_selects">
- <div class="set{if $type.chs!=null}_box{/if}" id="jump-broadcast" >
+ <div class="set" id="jump-broadcast" >
  <span class="title">放送波選択</span>
   <ul>
    {foreach from=$types name=loop item=type }
@@ -902,7 +902,7 @@ h2 {padding: 4px}
 
 <div id="tvtimes">
   {foreach from=$tvtimes name=loop item=time}
-    {if $smarty.foreach.loop.iteration == 1 }
+    {if $smarty.foreach.loop.iteration == 1}
       <div class="tvtime tm_{$time}" style="text-align:left;"><a style="color:white;" href="{$pre8link}">-8<br></a><a style="color:white;" href="{$prelink}">▲<br></a>{$time.hour}</div>
     {else}
       <div class="tvtime tm_{$time}" style="text-align:left;"><a style="color:white;" href="{$time.link}">{$time.hour}</a></div>
@@ -915,7 +915,7 @@ h2 {padding: 4px}
    <div id="tv_chs_{$program.ch_hash}" class="ch_set{if $program.skip == 1 || count($program.list) == 1 && !$program.list[0].id } ch_set_skip{/if}" >
     <div class="ch_programs" >
     {foreach from=$program.list item=item }
-      <div {if $item.id}id="prgID_{$item.id}"{/if} class="prg {if ! $item.id}prg_none {/if} ctg_{$item.genre}{if $item.rec gt 0 } prg_rec{$item.tuner}{/if}{if ! $item.autorec} freeze{/if}" style="height:{if $item.rec gt 0 }{if $item.height-10 gt 0}{$item.height-10}{else}0{/if}{else}{$item.height}{/if}px;">
+      <div {if $item.id}id="prgID_{$item.id}"{/if} class="prg {if ! $item.id}prg_none {/if} ctg_{$item.genre}{if $item.rec gt 0} prg_rec{$item.tuner}{/if}{if ! $item.autorec} freeze{/if}" style="height:{if $item.rec gt 0}{if $item.height-10 gt 0}{$item.height-10}{else}0{/if}{else}{$item.height}{/if}px;">
         <div class="prg_dummy">
           <div class="prg_title">{$item.title|escape}</div>
           <div class="prg_subtitle">
@@ -943,7 +943,7 @@ h2 {padding: 4px}
 
  <div id="tvtimes2" style="top : 0px; left: {math equation="x + 30" x=$chs_width}px" >
   {foreach from=$tvtimes name=loop item=time}
-    {if $smarty.foreach.loop.iteration == 1 }
+    {if $smarty.foreach.loop.iteration == 1}
       <div class="tvtime"><a style="color:white;" href="{$pre8link}">-8<br></a><a style="color:white;" href="{$prelink}">▲<br></a>{$time.hour}</div>
     {else}
       <div class="tvtime"><a style="color:white;" href="{$time.link}">{$time.hour}</a></div>

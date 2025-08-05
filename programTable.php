@@ -572,6 +572,7 @@ EXIT_REV:;
 			array_splice( $autorec_modes, $loop );
 			break;
 		}
+		$autorec_modes[$loop]['selected'] = '';
 	}
 	$autorec_modes[$autorec_mode]['selected'] = 'selected';
 

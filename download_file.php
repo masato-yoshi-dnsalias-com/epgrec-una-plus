@@ -9,6 +9,7 @@ include_once( INSTALL_PATH . '/recLog.inc.php' );
 
 $settings = Settings::factory();
 
+set_time_limit(0);
 if( isset( $_GET['reserve_id'] ) ){
 	$reserve_id = $_GET['reserve_id'];
 	try{

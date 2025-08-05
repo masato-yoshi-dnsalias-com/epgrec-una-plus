@@ -31,7 +31,7 @@ table#reservation_table td.errorlevel3 {background-color: blue;}
 
 <div id="naver">
 <form style="text-align:left; float:left; font-size:150%; font-weight:bold;">
-{$sitetitle}{if $keyword_id}<a href="recordedTable.php?key={$keyword_id}" title="自動キーワードIDで絞り込んで録画済一覧にジャンプ">▼</a>{/if}
+{$sitetitle}
 <select onChange="popJump(this)">
 <option value="#">メニュー</option>
 {foreach from=$menu_list item=record}
@@ -47,7 +47,7 @@ table#reservation_table td.errorlevel3 {background-color: blue;}
 <form name="myForm" method="post" action="logViewer.php">
 絞り込み：
 {foreach from=$log_levels name=loop item=level}
-	<input type="checkbox" name="level{$smarty.foreach.loop.iteration-1}" value="1"{if $level.view} checked="checked"{/if}>{$level.label} 
+	<label><input type="checkbox" name="level{$smarty.foreach.loop.iteration-1}" value="1"{if $level.view} checked="checked"{/if}>{$level.label}</label> 
 {/foreach}
 <input type="submit" value="絞り込む">
 </form>

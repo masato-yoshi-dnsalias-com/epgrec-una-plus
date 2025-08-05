@@ -178,6 +178,16 @@ for( $i = 0; $i < $lp_lmt; $i++ ){
 						$programs[$st]['list'][$num]['title']       = '';
 						$programs[$st]['list'][$num]['starttime']   = '';
 						$programs[$st]['list'][$num]['description'] = '';
+						$programs[$st]['list'][$num]['prg_start']   = '';
+						$programs[$st]['list'][$num]['duration']    = '';
+						$programs[$st]['list'][$num]['channel']     = '';
+						$programs[$st]['list'][$num]['id']          = 0;
+						$programs[$st]['list'][$num]['autorec']     = '';
+						$programs[$st]['list'][$num]['rec']         = 0;
+						$programs[$st]['list'][$num]['tuner']       = '';
+						$programs[$st]['list'][$num]['key_id']      = 0;
+						$programs[$st]['list'][$num]['prios']       = '';
+						$programs[$st]['list'][$num]['keyword']     = '';
 						$num++;
 					}
 					$prev_end = toTimestamp( $prg['endtime'] );
@@ -231,6 +241,16 @@ for( $i = 0; $i < $lp_lmt; $i++ ){
 				$programs[$st]['list'][$num]['title']       = '';
 				$programs[$st]['list'][$num]['starttime']   = '';
 				$programs[$st]['list'][$num]['description'] = '';
+				$programs[$st]['list'][$num]['prg_start']   = '';
+				$programs[$st]['list'][$num]['duration']    = '';
+				$programs[$st]['list'][$num]['channel']     = '';
+				$programs[$st]['list'][$num]['id']          = 0;
+				$programs[$st]['list'][$num]['autorec']     = '';
+				$programs[$st]['list'][$num]['rec']         = 0;
+				$programs[$st]['list'][$num]['tuner']       = '';
+				$programs[$st]['list'][$num]['key_id']      = 0;
+				$programs[$st]['list'][$num]['prios']       = '';
+				$programs[$st]['list'][$num]['keyword']     = '';
 			}
 			$st++;
 		}
