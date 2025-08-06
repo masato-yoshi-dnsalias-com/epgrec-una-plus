@@ -347,7 +347,7 @@ select.autokeys option{white-space:pre;}
   <td style="margin: 0;padding: 0;">{if !$rec.key_id }□{else}<a href="programTable.php?keyword_id={$rec.key_id}" title="自動キーワード編集にジャンプ">{$rec.key_id}</a>{/if}<br><input type="button" value="絞込" onClick="location.href='recordedTable.php?key={$rec.key_id}'" title="自動キーワードIDで絞り込み" style="padding:0;"></td>
   <td style="margin: 0;padding: 0;"><input type="button" value="変更" onClick="javascript:PRG.editdialog('{$rec.id}')" style="padding:0;"></td>
   <td style="margin: 0;padding: 0;"><input type="checkbox" name="del{$rec.id}" value="1" onClick="check_shiftclick({$smarty.foreach.loop.iteration},event)" title="一括削除用	
-シフトクリックで範囲操作が行なえます"><br><input type="button" value="削除" onClick="javascript:PRG.dialog('{$rec.id}','{$rec.title}')" style="padding:0;"></td>
+シフトクリックで範囲操作が行なえます"><br><input type="button" value="削除" onClick="javascript:PRG.dialog('{$rec.id}','{$rec.title|replace:'&#039':'\&#039'}')" style="padding:0;"></td>
  </tr>
 {/foreach}
 </table>

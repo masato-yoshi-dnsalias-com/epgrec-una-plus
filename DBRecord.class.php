@@ -181,7 +181,7 @@ class DBRecord {
 		$this->__query( rtrim( $sqlstr, ',' ).' WHERE id='.$id );
 	}
 
-	function sql_escape( $str ){
+	static function sql_escape( $str ){
 		if( self::$__dbh === FALSE ){
 			if( self::$__settings === FALSE )
 				self::$__settings = Settings::factory();

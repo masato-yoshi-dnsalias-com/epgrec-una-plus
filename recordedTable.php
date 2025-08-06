@@ -369,7 +369,7 @@ try{
 			$arr['asf']         = 'viewer.php?reserve_id='.$r['id'];
 			$arr['title']       = htmlspecialchars($r['title'],ENT_QUOTES);
 			$arr['description'] = htmlspecialchars($r['description'],ENT_QUOTES);
-			if( file_exists(INSTALL_PATH.$settings->thumbs.'/'.end(explode( '/', $r['path'] )).'.jpg') )
+			if( file_exists(INSTALL_PATH.$settings->thumbs.'/'.substr(strchr($r['path'],'/' ),1).'.jpg') )
 				$arr['thumb'] = '<img src="'.$view_url.$settings->thumbs.'/'.rawurlencode(end(explode( '/', $r['path'] ))).'.jpg" />';
 			else
 				$arr['thumb'] = '';

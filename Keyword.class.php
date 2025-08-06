@@ -208,7 +208,7 @@ class Keyword extends DBRecord {
 		return $recs;
 	}
 
-	private function setWeekofdays( $weekofday = 0x7f ){
+	private static function setWeekofdays( $weekofday = 0x7f ){
 		if( $weekofday != 0x7f ){
 			$weeks = '';
 			for( $b_cnt=0; $b_cnt<7; $b_cnt++ ){

@@ -52,11 +52,12 @@ function rest_check( $ch_disk, $sql_time ){
 
 // 地上波を処理する
 if( $usable_tuners !== 0 ){
+	$gr_ch_value = current($GR_CHANNEL_MAP);
+	$gr_ch_key = key($GR_CHANNEL_MAP);
 	$rec_time  = FIRST_REC;
 	$base_time = $rec_time + $settings->rec_switch_time + 2;
 	$sql_time  = create_sql_time( $base_time );
-	if( !( list( $ch_disk, $value ) = each( $GR_CHANNEL_MAP ) ) )
-		exit();
+	list( $ch_disk, $value ) = array($gr_ch_key,$gr_ch_value);
 	$ch_obj  = new DBRecord( CHANNEL_TBL );
 	$ch_disc = get_ch_disk( $ch_obj, $ch_disk );
 	for( $sem_cnt=0; $sem_cnt<$tuners; $sem_cnt++ ){
@@ -129,7 +130,9 @@ if( $usable_tuners !== 0 ){
 										while(1){
 											if( !rest_check( $ch_disc, $sql_time ) )
 												break;
-											if( !( list( $ch_disk, $value ) = each( $GR_CHANNEL_MAP ) ) ){
+											if( !( $gr_ch_value = next($GR_CHANNEL_MAP) ) ) {
+												$gr_ch_key = key($GR_CHANNEL_MAP);
+												list( $ch_disk, $value ) = array($gr_ch_key,$gr_ch_value);
 												shmop_write_surely( $shm_id, $shm_name, 0 );
 												$end_flag = TRUE;
 												goto GATHER_SHEEPS;		// 終了
@@ -151,7 +154,9 @@ if( $usable_tuners !== 0 ){
 
 										// 受信CH更新
 										while(1){
-											if( list( $ch_disk, $value ) = each( $GR_CHANNEL_MAP ) ){
+											if ( $gr_ch_value = next($GR_CHANNEL_MAP) ) {
+												$gr_ch_key = key($GR_CHANNEL_MAP);
+												list( $ch_disk, $value ) = array($gr_ch_key,$gr_ch_value);
 												$ch_disc = get_ch_disk( $ch_obj, $ch_disk );
 												if( !rest_check( $ch_disc, $sql_time ) )
 													continue 4;

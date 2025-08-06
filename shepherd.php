@@ -68,9 +68,9 @@ function exit_shephewrd(){
 					// 予約終了化
 					$wrt_set['complete'] = 1;
 					$res_obj->force_update( $r['id'], $wrt_set );
-					continue;
+					break;
 				case 1:	// トランスコード中
-					continue;
+					break;
 				case 2:	// 別ユーザーでAT登録
 					break;
 			}

@@ -149,8 +149,10 @@ if( $usable_tuners !== 0 ){
 
 									if( $motion ){
 										// 停波確認と受信CH更新
-										while(1){
-											if( list( $ch_disk, $value ) = each( $ch_list[$key] ) ){
+										//while(1){
+										foreach($ch_list as $ch){
+											//if( list( $ch_disk, $value ) = each( $ch_list[$key] ) ){
+											if( list( $ch_disk, $value ) = $ch ){
 												if( !rest_check( $value, $sql_time ) )
 													break;
 											}else
