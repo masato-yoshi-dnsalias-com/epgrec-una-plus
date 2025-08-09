@@ -382,7 +382,7 @@ function storeProgram( $type, $xmlfile ) {
 						case 0:
 							// 冒頭の余分な部分をpf1つ前を残して切り捨て
 							if( strcmp( $records[$cnt]['starttime'], $event_pf[0]['starttime'] ) < 0 )
-								continue;
+								break;
 							else{
 								$pf_trim = 1;
 								if( $cnt > 0 ){
@@ -1454,6 +1454,7 @@ NEXT_SUB:;
 		unset( $post );
 
 		// 番組延伸による番組構成の乱れ修正(番組構成修正スクリプト起動)
+		/*
 		if( $sch_sync['cnt']!=-1 && $sch_sync['pre_check']===FALSE ){
 			$event = $event_sch[$sch_sync['cnt']+1];
 			if( $type==='GR' || !$skip_ch ){
@@ -1477,6 +1478,7 @@ NEXT_SUB:;
 				}
 			}
 		}
+		*/
 		unset( $event_sch );
 		unset( $event_pf );
 	}

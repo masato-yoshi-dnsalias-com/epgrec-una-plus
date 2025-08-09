@@ -112,6 +112,7 @@ function sig_handler()
 			}else
 				break;
 		}
+		reclog( 'repairEPG::rec sleep='.$sp_tm."[".$type.':'.$value.':'.$sid.']'.toDatetime(time()).' now_tm='.toDatetime($now_tm).' , st_tm='.toDatetime($st_tm).' , ed_tm='.toDatetime($ed_tm), EPGREC_DEBUG );
 		sleep( $sp_tm );
 		if( DBRecord::countRecords( RESERVE_TBL, $sql_cmd ) )
 			break;
@@ -142,7 +143,7 @@ function sig_handler()
 						while( sem_release( $sem_id[$slc_tuner] ) === FALSE )
 							usleep( 100 );
 						sleep( (int)$settings->rec_switch_time );
-reclog( 'repairEPG::rec strat['.$type.':'.$value.':'.$sid.']'.toDatetime(time()), EPGREC_DEBUG );
+						reclog( 'repairEPG::rec strat['.$type.':'.$value.':'.$sid.']'.toDatetime(time()), EPGREC_DEBUG );
 						if( $type === 'EX' ){
 							$cmd_num = $EX_TUNERS_CHARA[$slc_tuner]['reccmd'];
 							$device  = $EX_TUNERS_CHARA[$slc_tuner]['device']!=='' ? ' '.trim($EX_TUNERS_CHARA[$slc_tuner]['device']) : '';
