@@ -8,12 +8,18 @@
 <meta http-equiv="Content-Style-Type" content="text/css">
 
 {literal}
-<script type="text/javascript" src="js/jquery-1.3.2.min.js"></script>
-<script type="text/javascript" src="js/jquery-ui-1.7.2.custom.min.js"></script>
-<link rel="stylesheet" href="start/jquery-ui-1.7.2.custom.css" type="text/css">
+<script type="text/javascript" src="js/jquery-3.7.1.min.js"></script>
+<script type="text/javascript" src="js/jquery-ui-1.14.1.min.js"></script>
+<link rel="stylesheet" href="start/jquery-ui-1.14.1.min.css" type="text/css">
 <link rel="stylesheet" href="start/layout.css" type="text/css">
 <script type="text/javascript" src="js/transcode.js"></script>
-<script type="text/javascript" src="js/common.js"></script>
+<script type="text/javascript">
+	function popJump(selOBJ)
+	{
+		var n = selOBJ.selectedIndex;
+		location.href = selOBJ.options[n].value;
+	}
+</script>
 <style type="text/css">
 <!--
 table#reservation_table td.errorlevel0 {background-color: #FFFFFF;}
@@ -24,7 +30,6 @@ table#reservation_table td.errorlevel3 {background-color: blue;}
 -->
 </style>
 {/literal}
-
 </head>
 
 <body>
