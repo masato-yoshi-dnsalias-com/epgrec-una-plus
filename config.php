@@ -1,5 +1,4 @@
 <?php
-
 // settings/gr_channel.phpが作成された場合、
 // config.php内の$GR_CHANNEL_MAPは無視されます
 
@@ -14,12 +13,12 @@ $GR_CHANNEL_MAP = array(
 	'GR21' => '21',		// フジ
 	'GR24' => '24',		// テレ朝
 	'GR23' => '23',		// テレ東
-//	'GR16' => '16',		// MX TV(スカイツリー)
+	'GR16' => '16',		// MX TV(スカイツリー)
 //	'GR20' => '20',		// MX TV(東京タワー)
-//	'GR18' => '18',		// テレ神
-	'GR30' => '30',		// 千葉
+	'GR18' => '18',		// テレ神
+//	'GR30' => '30',		// 千葉
 //	'GR32' => '32',		// テレ玉
-	'GR28' => '28',		// 大学
+//	'GR28' => '28',		// 大学
 );
 
 
@@ -72,7 +71,7 @@ $RECORD_MODE = array(
 
 
 // 第一チューナー設定(主にPTn)
-define( 'TUNER_UNIT1', 0 );							// 各放送波の論理チューナ数(地上波･衛星波で共用 ex.PT1が1枚なら2)
+define( 'TUNER_UNIT1', 4 );							// 各放送波の論理チューナ数(地上波･衛星波で共用 ex.PT1が1枚なら2)
 define( 'PT1_CMD_NUM', 0 );							// 録画コマンド指定 $rec_cmds中のどれを使うか選択 DVBドライバーで地デジだけの場合はrecdvbでOKなはず
 
 
@@ -80,7 +79,7 @@ define( 'PT1_CMD_NUM', 0 );							// 録画コマンド指定 $rec_cmds中のど
 $rec_cmds = array(
 	// PTn(recpt1)
 	0 => array(
-		'cmd'      => '/usr/local/bin/recpt1',		// コマンドフルパス
+		'cmd'      => '/usr/local/bin/recpt3',		// コマンドフルパス
 		'b25'      => ' --b25 --strip',				// B25オプション
 		'sidEXT'   => '',							// 録画時--sid追加オプション
 		'falldely' => 0,							// 録画コマンド失敗時のwait(秒)
@@ -201,7 +200,7 @@ define( 'INSTALL_PATH', dirname(__FILE__) );		// インストールパス
 define( 'MANUAL_REV_PRIORITY', 10 );				// 手動予約の優先度
 define( 'HTTPD_USER', 'www-data' );					// HTTPD(apache)アカウント
 define( 'HTTPD_GROUP', 'www-data' );					// HTTPD(apache)アカウント
-define( 'PADDING_TIME', 180 );						// 詰め物時間(変更禁止)
+define( 'PADDING_TIME', 60 );						// 詰め物時間(変更禁止)
 define( 'DO_RECORD', INSTALL_PATH . '/do-record.sh' );		// レコードスクリプト
 define( 'COMPLETE_CMD', INSTALL_PATH . '/recomplete.php' );	// 録画終了コマンド
 define( 'GEN_THUMBNAIL', INSTALL_PATH . '/gen-thumbnail.sh' );	// サムネール生成スクリプト
@@ -236,7 +235,7 @@ define( 'REBOOT_COMMENT', 'PT2 is out of order: SYSTEM REBOOT ' );
 // BSでepgdumpが頻繁に落ちる場合は、受信状態のいいチャンネルに変えることで
 // 改善するかもしれません
 
-define( 'BS_EPG_CHANNEL',  'BS15_0'  );	// BS
+define( 'BS_EPG_CHANNEL',  'BS9_0'  );	// BS
 
 define( 'CS1_EPG_CHANNEL', 'CS2' );	// CS1 2,8,10
 define( 'CS2_EPG_CHANNEL', 'CS4' );	// CS2 4,6,12,14,16,18,20,22,24

@@ -55,16 +55,16 @@ function doKeywordReservation( $wave_type = '*', $shm_id ) {
 				switch( $wave_type ){
 					case 'GR':
 						if( !(boolean)$val->typeGR )
-							continue;
+							break;
 						break;
 					case 'BS':
 					case 'CS':
 						if( !(boolean)$val->typeBS && !(boolean)$val->typeCS )
-							continue;
+							break;
 						break;
 					case 'EX':
 						if( !(boolean)$val->typeEX )
-							continue;
+							break;
 						break;
 //					case '*':
 //						break;
