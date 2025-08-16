@@ -1492,7 +1492,7 @@ file_put_contents( '/tmp/debug.txt', $process_log."\n", FILE_APPEND );
 			}
 			fwrite($pipes[0], 'echo $$ >/tmp/tuner_'.$rrec->id."\n" );		//ATジョブのPID保存ファイルの作成
 			if( $sleep_time ){
-				if( $program_id && $sleep_time > $settings->rec_switch_time )
+				if( $program_id && $sleep_time > $settings->rec_switch_time && SCOUTEPG_RUN )
 					fwrite($pipes[0], "echo 'temp' > './".$add_dir.'/tmp\' & sync & '.INSTALL_PATH.'/scoutEpg.php '.$rrec->id." &\n" );		//HDD spin-up + 単発EPG更新
 				else
 					fwrite($pipes[0], "echo 'temp' > './".$add_dir."/tmp' & sync &\n" );		//HDD spin-up

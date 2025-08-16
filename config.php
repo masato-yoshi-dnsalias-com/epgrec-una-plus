@@ -173,6 +173,7 @@ define( 'REALVIEW_PID', '/tmp/realview' );			// リアルタイム視聴チュ�
 // EPG取得関連
 define( 'HIDE_CH_EPG_GET', FALSE );					// 非表示チャンネルのEPGを取得するならTRUE
 define( 'EXTINCT_CH_AUTO_DELETE', FALSE );			// 廃止チャンネルを自動削除するならTRUE(HIDE_CH_EPG_GET=TRUE時のみに有効・メンテナンス画面あり)
+define( 'SCOUTEPG_RUN', FALSE);					// scoutEpg.phpの実行可否設定
 
 // 自動キーワ－ド予約の警告設定初期値(登録キーワード毎に変更可能・状態発生時に警告をログ出力する)
 define( 'CRITERION_CHECK', FALSE );					// 収録時間変動
