@@ -20,6 +20,7 @@ if( isset($_GET['reserve_id']) ){
 		$program_id = $rec[0]['program_id'];
 
 		try{
+//file_put_contents( '/tmp/debug.txt', 'cancelReservation.php: Reservation::cancel $reserve_id='.$reserve_idi.' , $program_id='.$program_id.' , $db_clean='.$db_clean."\n", FILE_APPEND );
 			$ret_code = Reservation::cancel( $reserve_id, $program_id, $db_clean );
 		}
 		catch( Exception $e ){
@@ -69,6 +70,7 @@ if( isset($_GET['reserve_id']) ){
 	$program_id = $_GET['program_id'];
 	// 予約取り消し実行
 	try{
+//file_put_contents( '/tmp/debug.txt', 'cancelReservation.php: Reservation::cancel $program_id='.$program_id."\n", FILE_APPEND );
 		$ret_code = Reservation::cancel( 0, $program_id );
 	}
 	catch( Exception $e ){

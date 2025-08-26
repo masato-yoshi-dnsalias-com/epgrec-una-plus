@@ -29,6 +29,11 @@ function sig_handler()
 {
 	global	$temp_xml,$temp_ts;
 
+	$settings      = Settings::factory();
+	$gr_tuners   = (int)$settings->gr_tuners;
+	$bs_tuners   = (int)$settings->bs_tuners;
+	$grbs_tuners = (int)$settings->grbs_tuners;
+
 	// シャットダウンの処理
 	//テンポラリーファイル削除
 	if( isset( $temp_ts ) && file_exists( $temp_ts ) )
@@ -38,11 +43,17 @@ function sig_handler()
 	//共有メモリー変数初期化
 	switch( $_SERVER['argv'][1] ){
 		case 'GR':
-			$shm_name = SEM_GR_START;
+			if( $tuner < $gr_tuners )
+				$shm_name = SEM_GR_START;
+			else
+				$shm_name = SEM_GRST_START;
 			break;
 		case 'BS':
 		case 'CS':
-			$shm_name = SEM_ST_START;
+			if( $tuner < $bs_tuners )
+				$shm_name = SEM_ST_START;
+			else
+				$shm_name = SEM_GRST_START;
 			break;
 		case 'EX':
 			$shm_name = SEM_EX_START;
@@ -72,24 +83,33 @@ function sig_handler()
 	$cut_sids = isset( $argv[7] ) ? $argv[7] : '';
 
 	$smf_type = $type==='CS' ? 'BS' : $type;
+
+	$settings      = Settings::factory();
+	$gr_tuners   = (int)$settings->gr_tuners;
+	$bs_tuners   = (int)$settings->bs_tuners;
+	$grbs_tuners = (int)$settings->grbs_tuners;
 	switch( $smf_type ){
 		case 'GR':
-			$shm_name = SEM_GR_START;
+			if( $tuner < $gr_tuners )
+				$shm_name = SEM_GR_START + $tuner;
+			else
+				$shm_name = SEM_GRST_START + ($tuner - $gr_tuners);
 			break;
 		case 'BS':
-//		case 'CS':
-			$shm_name = SEM_ST_START;
+			if( $tuner < $bs_tuners )
+				$shm_name = SEM_ST_START + $tuner;
+			else
+				$shm_name = SEM_GRST_START + ($tuner - $bs_tuners);
 			break;
 		case 'EX':
-			$shm_name = SEM_EX_START;
+			$shm_name = SEM_EX_START + $tuner;
 			break;
 		default:
 			reclog( 'airwavesSheep.php::チューナー種別エラー "'.$type.'"は未定義です。<br>チューナー占有フラグが残留している可能性があります。', EPGREC_ERROR );
 			exit;
 	}
-	$shm_name += $tuner;
+//file_put_contents( '/tmp/debug.txt', 'airwavesSheep.php: $shm_name='.$shm_name."\n", FILE_APPEND );
 	$dmp_type = $type==='GR' ? $ch_disk : '/'.$type;								// 無改造でepgdumpのプレミアム対応が出来ればこのまま
-//	$dmp_type = $type==='GR' ? $ch_disk : '/'.($type==='EX' ? 'CS' : $type);
 
 	$settings = Settings::factory();
 	$temp_xml = $settings->temp_xml.'_'.$type.$value;

@@ -11,19 +11,20 @@ define( 'SEM_KW_MAX',    10 );					// キーワード予約排他処理用
 define( 'SHM_SCAL_WIDE',  8 );					// 変数の桁数+1
 
 // ftok()のID・セマフォ・共有メモリーのキー (双方で共用)
-define( 'SEM_GR_START',  1 );							//  1-20:地デジ (0:未使用or録画中 1:EPG受信 2:リアルタイム視聴)
+define( 'SEM_GR_START',  1 );				//  1-20:地デジ (0:未使用or録画中 1:EPG受信 2:リアルタイム視聴)
 define( 'SEM_ST_START', (SEM_GR_START+MAX_TUNERS) );	// 21-40:衛星 (0:未使用or録画中 1:EPG受信 2:リアルタイム視聴)
-define( 'SEM_EX_START', (SEM_ST_START+MAX_TUNERS) );	// 41-60:スカパー！プレミアム (0:未使用or録画中 1:EPG受信 2:リアルタイム視聴)
-define( 'SEM_REALVIEW', (SEM_EX_START+MAX_TUNERS) );	// 61:   リアルタイム視聴(チューナー番号)
-define( 'SEM_EPGDUMP',  (SEM_REALVIEW+1) );				// 62:   epgdump
-define( 'SEM_EPGSTORE', (SEM_REALVIEW+2) );				// 63:   EPGのDB展開
-define( 'SEM_REBOOT',   (SEM_REALVIEW+3) );				// 64:   リブート・フラグ
-define( 'SEM_TRANSCODE',(SEM_REALVIEW+4) );				// 65:   トランスコードマネージャ起動確認
-define( 'SEM_PW_REDUCE',(SEM_REALVIEW+5) );				// 66:   間欠運用管理資源
-define( 'SEM_EPGDUMPF', (SEM_REALVIEW+6) );				// 67:   epgdump(強制)
-define( 'SEM_EPGSTOREF',(SEM_REALVIEW+7) );				// 68:   EPGのDB展開(強制)
-define( 'SEM_DISKCHECK',(SEM_REALVIEW+8) );				// 69:   DISK残量チェック
-define( 'SEM_KW_START', (SEM_REALVIEW+10) );			// 71-80:キーワード予約排他処理用(キーワードID)
+define( 'SEM_GRST_START', (SEM_ST_START+MAX_TUNERS) );	// 41-60:地デジ/衛星 (0:未使用or録画中 1:EPG受信 2:リアルタイム視聴)
+define( 'SEM_EX_START', (SEM_GRST_START+MAX_TUNERS) );	// 61-80:スカパー！プレミアム (0:未使用or録画中 1:EPG受信 2:リアルタイム視聴)
+define( 'SEM_REALVIEW', (SEM_EX_START+MAX_TUNERS) );	// 81:   リアルタイム視聴(チューナー番号)
+define( 'SEM_EPGDUMP',  (SEM_REALVIEW+1) );				// 82:   epgdump
+define( 'SEM_EPGSTORE', (SEM_REALVIEW+2) );				// 83:   EPGのDB展開
+define( 'SEM_REBOOT',   (SEM_REALVIEW+3) );				// 84:   リブート・フラグ
+define( 'SEM_TRANSCODE',(SEM_REALVIEW+4) );				// 85:   トランスコードマネージャ起動確認
+define( 'SEM_PW_REDUCE',(SEM_REALVIEW+5) );				// 86:   間欠運用管理資源
+define( 'SEM_EPGDUMPF', (SEM_REALVIEW+6) );				// 87:   epgdump(強制)
+define( 'SEM_EPGSTOREF',(SEM_REALVIEW+7) );				// 88:   EPGのDB展開(強制)
+define( 'SEM_DISKCHECK',(SEM_REALVIEW+8) );				// 89:   DISK残量チェック
+define( 'SEM_KW_START', (SEM_REALVIEW+10) );			// 91-100:キーワード予約排他処理用(キーワードID)
 define( 'SEM_MAX',      (SEM_KW_START+SEM_KW_MAX-1) );	// 
 define( 'SHM_ID',      255 );							// 共用メモリー
 
@@ -733,9 +734,9 @@ function link_menu_create( $mode = 'none' )
 
 	if( $mode !== 'INDEX' ){
 		$link_add = array();
-		if( (int)$settings->gr_tuners > 0 )
+		if( (int)($settings->gr_tuners + $settings->grbs_tuners) > 0 )
 			$link_add[] = array( 'name' => '地上デジタル番組表', 'url' => 'index.php' );
-		if( (int)$settings->bs_tuners > 0 ){
+		if( (int)($settings->bs_tuners + $settings->grbs_tuners) > 0 ){
 			$link_add[] = array( 'name' => 'BSデジタル番組表', 'url' => 'index.php?type=BS' );
 			if( (boolean)$settings->cs_rec_flg )
 				$link_add[] = array( 'name' => 'CSデジタル番組表', 'url' => 'index.php?type=CS' );

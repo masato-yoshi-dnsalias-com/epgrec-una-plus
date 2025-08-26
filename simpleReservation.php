@@ -7,7 +7,6 @@ include_once( INSTALL_PATH . '/Settings.class.php' );
 
 if( ! isset( $_GET['program_id'] ) ) exit('Error: 番組が指定されていません' );
 $program_id = $_GET['program_id'];
-
 $settings = Settings::factory();
 $mode     = (int)$settings->autorec_mode;
 

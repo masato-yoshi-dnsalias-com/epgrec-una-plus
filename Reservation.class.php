@@ -217,62 +217,72 @@ class Reservation {
 			$rec_switch_time = (int)$settings->rec_switch_time;
 			$ed_tm_sft       = $former_time + $rec_switch_time;
 			$ed_tm_sft_chk   = $ed_tm_sft + $extra_time;
+			$gr_tuners       = (int)($settings->gr_tuners);
+			$bs_tuners       = (int)($settings->bs_tuners);
+			$grbs_tuners     = (int)($settings->grbs_tuners);
 			//チューナ仕様取得
 			if( $crec->type === 'GR' ){
-				$tuners   = (int)($settings->gr_tuners);
+				$tuners   = (int)($settings->gr_tuners + $settings->grbs_tuners);
 				$type_str = 'type=\'GR\'';
+				$oth_type_str = '(type=\'BS\' OR type=\'CS\')';
 				$smf_type = 'GR';
+				$oth_smf_type = 'BS';
+				$crec_tuners = $gr_tuners;
+				$oth_tuners = $bs_tuners;
+				$offset_cnt = $bs_tuners;
 			}else
 			if( $crec->type === 'EX' ){
 				$tuners   = EXTRA_TUNERS;
 				$type_str = 'type=\'EX\'';
 				$smf_type = 'EX';
 			}else{
-				$tuners   = (int)($settings->bs_tuners);
+				$tuners   = (int)($settings->bs_tuners + $settings->grbs_tuners);
 				$type_str = '(type=\'BS\' OR type=\'CS\')';
+				$oth_type_str = 'type=\'GR\'';
 				$smf_type = 'BS';
+				$oth_smf_type = 'GR';
+				$crec_tuners = $bs_tuners;
+				$oth_tuners = $gr_tuners;
+				$offset_cnt = $gr_tuners;
 			}
 			$stt_str  = toDatetime( $start_time-$ed_tm_sft_chk );
 			$end_str  = toDatetime( $end_time+$ed_tm_sft_chk );
 			$battings = DBRecord::countRecords( RESERVE_TBL, 'WHERE complete=0 AND '.$type_str.
-															' AND starttime<=\''.$end_str.
-															'\' AND endtime>=\''.$stt_str.'\'' );		//重複数取得
+				' AND starttime<=\''.$end_str.
+				'\' AND endtime>=\''.$stt_str.'\'' );		//重複数取得
+
+			$battings_oth = DBRecord::countRecords( RESERVE_TBL, 'WHERE complete=0 AND '.$oth_type_str.
+				' AND starttime<=\''.$end_str.
+				'\' AND endtime>=\''.$stt_str.'\'' );		//重複数取得
+			if( $crec->type != 'EX' && $grbs_tuners > 0 && $oth_tuners < $battings_oth )
+				$battings_oth = $battings_oth - $oth_tuners;
+			else
+				$battings_oth = 0;
+
+			$battings = $battings + $battings_oth;
+
+//file_put_contents( '/tmp/debug.txt', 'Reservation.class.php: '.'$crec->type='.$crec->type.' , $battings='.$battings.' , $battings_oth='.$battings_oth.">\n", FILE_APPEND );
 			if( $battings > 0 ){
 				//重複
 				//予約群 先頭取得
 				$res_obj    = new DBRecord( RESERVE_TBL );
 				$prev_trecs = array();
-				while( 1 ){
-					try{
-						$prev_trecs = $res_obj->fetch_array( 'complete', 0, $type_str.
-															' AND starttime<\''.$stt_str.
-															'\' AND endtime>=\''.$stt_str.'\' ORDER BY starttime ASC' );
-						if( count($prev_trecs) == 0 )
-							break;
-						$stt_str = toDatetime( toTimestamp( $prev_trecs[0]['starttime'] )-$ed_tm_sft_chk );
-					}catch( Exception $e ){
-						break;
-					}
-				}
-				//予約群 最後尾取得
-				while( 1 ){
-					try{
-						$prev_trecs = $res_obj->fetch_array( 'complete', 0, $type_str.
-															' AND starttime<=\''.$end_str.
-															'\' AND endtime>\''.$end_str.'\' ORDER BY endtime DESC' );
-						if( count($prev_trecs) == 0 )
-							break;
-						$end_str = toDatetime( toTimestamp( $prev_trecs[0]['endtime'] )+$ed_tm_sft_chk );
-					}catch( Exception $e ){
-						break;
-					}
-				}
 
 				//重複予約配列取得
+//file_put_contents( '/tmp/debug.txt', 'Reservation.class.php: '.'$stt_str='.$stt_str.' , $end_str='.$end_str.">\n", FILE_APPEND );
 				$prev_trecs = $res_obj->fetch_array( 'complete', 0, $type_str.
-															' AND starttime>=\''.$stt_str.
-															'\' AND endtime<=\''.$end_str.'\'' );
-//															'\' AND endtime<=\''.$end_str.'\' ORDER BY starttime ASC, endtime DESC' );
+					' AND starttime<=\''.$end_str.
+					'\' AND endtime>=\''.$stt_str.'\'' );
+//					'\' AND endtime<=\''.$end_str.'\' ORDER BY starttime ASC, endtime DESC' );
+//file_put_contents( '/tmp/debug.txt', 'Reservation.class.php: '.'$prev_trecs='.count($prev_trecs).' , $offset_cnt='.$offset_cnt.">\n", FILE_APPEND );
+				if( $crec->type != 'EX' && $grbs_tuners > 0 && $crec_tuners <= $battings ){
+					$prev_trecs_oth = array();
+					$prev_trecs_oth = $res_obj->fetch_array( 'complete', 0, $oth_type_str.
+						' AND starttime<=\''.$end_str.
+						'\' AND endtime>=\''.$stt_str.'\' limit 100 offset '.$offset_cnt );
+					$prev_trecs =  array_merge($prev_trecs,$prev_trecs_oth);
+//file_put_contents( '/tmp/debug.txt', 'Reservation.class.php: '.'$oth_type_str='.$oth_type_str.' , $prev_trecs='.count($prev_trecs).' , $prev_trecs_oth='.count($prev_trecs_oth).">\n", FILE_APPEND );
+				}
 				// 予約修正に必要な情報を取り出す
 				$trecs = array();
 				for( $cnt=0; $cnt<count($prev_trecs) ; $cnt++ ){
@@ -297,6 +307,7 @@ class Reservation {
 					$trecs[$cnt]['discontinuity'] = (int)$prev_trecs[$cnt]['discontinuity'];
 					$trecs[$cnt]['status']        = 1;
 				}
+//file_put_contents( '/tmp/debug.txt', 'Reservation.class.php: '.'$trecs='.count($trecs).">\n", FILE_APPEND );
 				//新規予約を既予約配列に追加
 				$trecs[$cnt]['id']            = 0;
 				$trecs[$cnt]['program_id']    = $program_id;
@@ -318,6 +329,7 @@ class Reservation {
 				$trecs[$cnt]['overlap']       = $overlap;
 				$trecs[$cnt]['discontinuity'] = $discontinuity;
 				$trecs[$cnt]['status']        = 1;
+//file_put_contents( '/tmp/debug.txt', 'Reservation.class.php: '.'$trecs='.count($trecs).">\n", FILE_APPEND );
 
 				//全重複予約をソート
 				foreach( $trecs as $key => $row ){
@@ -340,7 +352,6 @@ RETRY:;
 					$n_1 = 0;
 					if( isset( $t_tree[$t_cnt] ) )
 					while( $n_0 < count($t_tree[$t_cnt]) ){
-//file_put_contents( '/tmp/debug.txt', "[".count($t_tree[$t_cnt])."-".$n_0."]\n", FILE_APPEND );
 						$af_st     = $trecs[$t_tree[$t_cnt][$n_0]]['start_time'];
 //						$bf_st     = $trecs[$t_tree[$t_cnt][$b_rev]]['start_time'];
 //						$bf_org_ed = $trecs[$t_tree[$t_cnt][$b_rev]]['end_time'];
@@ -350,21 +361,17 @@ RETRY:;
 							//完全重複 隣接禁止時もここ
 							$t_tree[$t_cnt+1][$n_1] = $t_tree[$t_cnt][$n_0];
 							$n_1++;
-//file_put_contents( '/tmp/debug.txt', ' '.count($t_tree[$t_cnt]).">", FILE_APPEND );
 							array_splice( $t_tree[$t_cnt], $n_0, 1 );
-//file_put_contents( '/tmp/debug.txt', count($t_tree[$t_cnt])."\n", FILE_APPEND );
 						}else
 						if( $variation < $ed_tm_sft_chk ){
 							//隣接重複
 							// 重複数算出
 							$t_ovlp = 0;
-//file_put_contents( '/tmp/debug.txt', ' $t_ovlp ', FILE_APPEND );
 							if( isset( $t_tree[$t_cnt+1] ) ){
 								foreach( $t_tree[$t_cnt+1] as $trunk ){
 									if( $trecs[$trunk]['start_time']<=$bf_ed && $trecs[$trunk]['end_time_sort']>=$bf_ed )
 										$t_ovlp++;
 								}
-//file_put_contents( '/tmp/debug.txt', $t_ovlp." -> ", FILE_APPEND );
 							}
 							$s_ch = -1;
 							for( $br_lmt=$n_0; $br_lmt<count($t_tree[$t_cnt]); $br_lmt++ ){
@@ -378,17 +385,14 @@ RETRY:;
 								}else
 									break;
 							}
-//file_put_contents( '/tmp/debug.txt', $t_ovlp."\n", FILE_APPEND );
 
 							if( $t_ovlp<=$tuners-$t_cnt || ( $settings->force_cont_rec==1 && $trecs[$t_tree[$t_cnt][$b_rev]]['discontinuity']!=1 ) ){
-//file_put_contents( '/tmp/debug.txt', ' '.count($t_tree[$t_cnt]).">>\n", FILE_APPEND );
 								if( $t_ovlp<=TUNER_UNIT1-1-$t_cnt && $t_ovlp <= $tuners-1-$t_cnt ){
 									//(使い勝手の良い)チューナに余裕あり
 									for( $cc=$n_0; $cc<$br_lmt; $cc++ ){
 										$t_tree[$t_cnt+1][$n_1] = $t_tree[$t_cnt][$cc];
 										$n_1++;
 									}
-//file_put_contents( '/tmp/debug.txt', " array1-(".($br_lmt-$n_0).")\n", FILE_APPEND );
 									array_splice( $t_tree[$t_cnt], $n_0, $br_lmt-$n_0 );
 								}else{
 									//チューナに余裕なし
@@ -402,11 +406,8 @@ RETRY:;
 											$t_tree[$t_cnt+1][$n_1] = $t_tree[$t_cnt][$cc];
 											$n_1++;
 										}
-//file_put_contents( '/tmp/debug.txt', " array2-1-(".$t_ovlp." ".$br_lmt." ".$s_ch." ".$n_0.")\n", FILE_APPEND );
-//file_put_contents( '/tmp/debug.txt', " array2-2-(".($br_lmt-($s_ch+1)).")\n", FILE_APPEND );
 										if( $br_lmt-($s_ch+1) > 0 )
 											array_splice( $t_tree[$t_cnt], $s_ch+1, $br_lmt-($s_ch+1) );
-//file_put_contents( '/tmp/debug.txt', " array2-3-(".($s_ch-$n_0).")\n", FILE_APPEND );
 										if( $s_ch-$n_0 > 0 )
 											array_splice( $t_tree[$t_cnt], $n_0, $s_ch-$n_0 );
 										$b_rev++;
@@ -419,25 +420,20 @@ RETRY:;
 											$t_tree[$t_cnt+1][$n_1] = $t_tree[$t_cnt][$cc];
 											$n_1++;
 										}
-//file_put_contents( '/tmp/debug.txt', " array3A-(".($br_lmt-$n_0).")\n", FILE_APPEND );
 										if( $br_lmt-$n_0 > 0 )
 											array_splice( $t_tree[$t_cnt], $n_0, $br_lmt-$n_0 );
 									}
 								}
 							}else
 								goto PRIORITY_CHECK;
-//file_put_contents( '/tmp/debug.txt', "  >>".count($t_tree[$t_cnt])."\n", FILE_APPEND );
 						}else{
 							//隣接なし
 							$b_rev++;
 							$n_0++;
-//file_put_contents( '/tmp/debug.txt', "  <<<".count($t_tree[$t_cnt]).">>>\n", FILE_APPEND );
 						}
-//file_put_contents( '/tmp/debug.txt', " [[".count($t_tree[$t_cnt])."-".$n_0."]]\n", FILE_APPEND );
 					}
 				}
-//file_put_contents( '/tmp/debug.txt', "分配完了\n\n", FILE_APPEND );
-//var_dump($t_tree);
+
 				//重複解消不可処理
 				if( count($t_tree) > $tuners ){
 PRIORITY_CHECK:
@@ -461,7 +457,6 @@ PRIORITY_CHECK:
 						}
 						//自動予約禁止
 						$event = new DBRecord( PROGRAM_TBL, 'id', $program_id );
-//						if( (int)$event->key_id!==0 && (int)$event->key_id!==$autorec && DBRecord::countRecords( KEYWORD_TBL, 'WHERE id='.$event->key_id )!==0 )
 						if( (int)$event->key_id!==0 && ( (int)$event->key_id===$autorec
 												|| ( (int)$event->key_id!==$autorec && DBRecord::countRecords( KEYWORD_TBL, 'WHERE id='.$event->key_id )!==0 ) ) )
 							goto LOG_THROW;
@@ -475,7 +470,7 @@ LOG_THROW:;
 					}
 					throw new Exception( '重複により予約できません' );
 				}
-// file_put_contents( '/tmp/debug.txt', "重複解消\n", FILE_APPEND );
+
 				//チューナ番号の解決
 				$t_blnk        = array_fill( 0, $tuners, 0 );
 				$t_num         = array_fill( 0, $tuners, -1 );
@@ -561,8 +556,6 @@ LOG_THROW:;
 				$tuner_chg = 0;
 				//新規予約・隣接解消再予約等 隣接禁止については分配時に解決済
 				for( $t_cnt=0; $t_cnt<$tuners ; $t_cnt++ ){
-// file_put_contents( '/tmp/debug.txt', ($t_cnt+1)."(".count($t_tree[$t_cnt]).")\n", FILE_APPEND );
-//var_dump($t_tree[$t_cnt]);
 					if( isset( $t_tree[$t_cnt] ) )
 					for( $n_0=0,$n_lmt=count($t_tree[$t_cnt]); $n_0<$n_lmt ; $n_0++ ){
 						// 予約修正に必要な情報を取り出す
@@ -850,43 +843,63 @@ LOG_THROW:;
 	private static function at_set(
 		$start_time,				// 開始時間
 		$end_time,				// 終了時間
-		$channel_id,			// チャンネルID
-		$title = 'none',		// タイトル
-		$description = 'none',	// 概要
-		$category_id = 0,		// カテゴリID
-		$program_id = 0,		// 番組ID
-		$autorec = 0,			// 自動録画ID
+		$channel_id,				// チャンネルID
+		$title = 'none',			// タイトル
+		$description = 'none',			// 概要
+		$category_id = 0,			// カテゴリID
+		$program_id = 0,			// 番組ID
+		$autorec = 0,				// 自動録画ID
 		$mode = 0,				// 録画モード
 		$dirty = 0,				// ダーティフラグ
 		$tuner = 0,				// チューナ
 		$priority,				// 優先度
 		$overlap,				// 重複予約可否
-		$discontinuity,			// 隣接短縮可否
+		$discontinuity,				// 隣接短縮可否
 		$shortened				// 隣接短縮フラグ
 	) {
 		global $RECORD_MODE,$rec_cmds,$OTHER_TUNERS_CHARA,$EX_TUNERS_CHARA;
-		$settings   = Settings::factory();
-		$spool_path = INSTALL_PATH.$settings->spool;
-		$crec_      = new DBRecord( CHANNEL_TBL, 'id', $channel_id );
-		$smf_type   = $crec_->type!=='CS' ? $crec_->type : 'BS';
+		$settings    = Settings::factory();
+		$spool_path  = INSTALL_PATH.$settings->spool;
+		$crec_       = new DBRecord( CHANNEL_TBL, 'id', $channel_id );
+		$smf_type    = $crec_->type!=='CS' ? $crec_->type : 'BS';
+		$gr_tuners   = (int)($settings->gr_tuners);
+		$bs_tuners   = (int)($settings->bs_tuners);
+		$grbs_tuners = (int)($settings->grbs_tuners);
 
 		//即時録画の指定チューナー確保
 		$epg_time = array( 'GR' => FIRST_REC, 'BS' => 180, 'CS' => 120, 'EX' => 180 );
 		if( $start_time-$settings->former_time-$epg_time[$crec_->type] <= time() ){
-			$shm_nm   = array( SEM_GR_START, SEM_ST_START, SEM_EX_START );
+			$shm_nm   = array( SEM_GR_START, SEM_ST_START, SEM_EX_START, SEM_GRST_START );
 			switch( $crec_->type ){
 				case 'GR':
-					$sem_type = 0;
+					if( $tuner < $gr_tuners ){
+						$sem_type = 0;
+						$shm_name = $shm_nm[$sem_type] + $tuner;
+					}else{
+						$sem_type = 3;
+						$epg_sem_type = 0;
+						$shm_name = $shm_nm[$sem_type] + ($tuner - $gr_tuners);
+					}
+					$epg_sem_type = 0;
 					break;
 				case 'BS':
 				case 'CS':
-					$sem_type = 1;
+					if( $tuner < $bs_tuners ){
+						$sem_type = 1;
+						$shm_name = $shm_nm[$sem_type] + $tuner;
+					}else{
+						$sem_type = 3;
+						$shm_name = $shm_nm[$sem_type] + ($tuner - $bs_tuners);
+					}
+					$epg_sem_type = 1;
 					break;
 				case 'EX':
 					$sem_type = 2;
+					$shm_name = $shm_nm[$sem_type] + $tuner;
+					$epg_sem_type = 2;
 					break;
 			}
-			$shm_name = $shm_nm[$sem_type] + $tuner;
+//file_put_contents( '/tmp/debug.txt', 'Reservation.class.php: $tuner='.$tuner.' , $shm_name='.$shm_name.' , $sem_type='.$sem_type.' , $epg_sem_type='.$epg_sem_type."\n", FILE_APPEND );
 			$sem_id   = sem_get_surely( $shm_name );
 			if( $sem_id === FALSE )
 				throw new Exception( 'セマフォ・キー確保に失敗' );
@@ -907,11 +920,12 @@ LOG_THROW:;
 					}else
 						if( $smph == 1 ){
 							// EPG受信停止
-							$rec_trace = $settings->temp_data.'_'.$smf_type.$tuner;
+							$rec_trace = $settings->temp_data.'_'.$epg_smf_type.$tuner;
 							$ps_output = shell_exec( PS_CMD );
 							$rarr      = explode( "\n", $ps_output );
 							for( $cc=0; $cc<count($rarr); $cc++ ){
 								if( strpos( $rarr[$cc], $rec_trace ) !== FALSE ){
+//file_put_contents( '/tmp/debug.txt', 'Reservation.class.php: $rarr['.$cc.']='.$rarr[$cc]."\n", FILE_APPEND );
 									$ps = ps_tok( $rarr[$cc] );
 									while( ++$cc < count($rarr) ){
 										$c_ps = ps_tok( $rarr[$cc] );
@@ -920,6 +934,7 @@ LOG_THROW:;
 											while( ++$cc < count($rarr) ){
 												$c_ps = ps_tok( $rarr[$cc] );
 												if( $ps->pid == $c_ps->ppid ){
+//file_put_contents( '/tmp/debug.txt', 'Reservation.class.php: posix_kill pid='.$c_ps->pid."\n", FILE_APPEND );
 													posix_kill( $c_ps->pid, 15 );		//EPG受信停止
 													$sleep_time = $settings->rec_switch_time;
 													break 4;
@@ -988,26 +1003,6 @@ LOG_THROW:;
 		$rrec = null;
 		try {
 			// ここからファイル名生成
-/*
-			%TITLE%	番組タイトル
-			// %TITLEn%	番組タイトル(n=1-9 1枠の複数タイトルから選別変換 '/'でセパレートされているものとする)
-			%ST%	開始日時（ex.200907201830)
-			%ET%	終了日時
-			%TYPE%	GR/BS/CS
-			%CH%	チャンネル番号
-			// %SID%	サービスID
-			// %CHNAME%	チャンネル名
-			%DOW%	曜日（Sun-Mon）
-			%DOWJ%	曜日（日-土）
-			%YEAR%	開始年
-			%MONTH%	開始月
-			%DAY%	開始日
-			%HOUR%	開始時
-			%MIN%	開始分
-			%SEC%	開始秒
-			%DURATION%	録画時間（秒）
-			// %DURATIONHMS%	録画時間（hh:mm:ss）
-*/
 			$day_of_week = array( '日','月','火','水','木','金','土' );
 			$filename = $autorec&&$keyword->filename_format!='' ? $keyword->filename_format : $settings->filename_format;
 
@@ -1134,7 +1129,7 @@ LOG_THROW:;
 			while(1){
 				$csv_word = operateParse( $filename, 'PROCESS' );
 				if( $csv_word !== FALSE ){
-$process_log = '<<< '.$csv_word." >>>\n";
+//$process_log = '<<< '.$csv_word." >>>\n";
 					$parts = str_getcsv( $csv_word );
 					if( $parts !== FALSE ){
 						// ソース取得
@@ -1146,32 +1141,32 @@ $process_log = '<<< '.$csv_word." >>>\n";
 								$dest_sorce = trim($description);
 								break;
 							default:
-file_put_contents( '/tmp/debug.txt', $process_log."\n", FILE_APPEND );
+//file_put_contents( '/tmp/debug.txt', 'Reservation.class.php: '.$process_log."\n", FILE_APPEND );
 								break 2;	// 不正書式
 						}
 						$delim = array_shift( $parts );
-$process_log .= $delim.'::'.$dest_sorce."\n";
+//$process_log .= $delim.'::'.$dest_sorce."\n";
 						// 加工コマンド
 						while( count($parts) && $dest_sorce!=='' ){
 							$sub_cmd = array_shift( $parts );
 							if( count($parts) ){
-$process_log .= $sub_cmd."\n";
+//$process_log .= $sub_cmd."\n";
 								switch( $sub_cmd ){
 									case '$REPLACE$':
 										if( extraWordCheck( $parts[0] ) )
 											break;
 										$src_wd = array_shift( $parts );
-$process_log .= '$src_wd:'.$src_wd."\n";
+//$process_log .= '$src_wd:'.$src_wd."\n";
 										if( count($parts) ){
 											if( extraWordCheck( $parts[0] ) )
 												break;
 											$dst_wd     = array_shift( $parts );
-$process_log .= '$dst_wd:'.$dst_wd."\n";
+//$process_log .= '$dst_wd:'.$dst_wd."\n";
 											$dest_sorce = str_replace( $src_wd, $dst_wd, $dest_sorce );
-$process_log .= $dest_sorce."\n";
+//$process_log .= $dest_sorce."\n";
 											break;
 										}
-file_put_contents( '/tmp/debug.txt', $process_log."\n", FILE_APPEND );
+//file_put_contents( '/tmp/debug.txt', 'Reservation.class.php: '.$process_log."\n", FILE_APPEND );
 										break 2;
 									case '$CUT$':
 										$word_stk = array();
@@ -1180,23 +1175,23 @@ file_put_contents( '/tmp/debug.txt', $process_log."\n", FILE_APPEND );
 												if( count($word_stk) )
 													break;
 												else{
-file_put_contents( '/tmp/debug.txt', $process_log."\n", FILE_APPEND );
+//file_put_contents( '/tmp/debug.txt', 'Reservation.class.php: '.$process_log."\n", FILE_APPEND );
 													break 2;
 												}
 											}else
 												$word_stk[] = array_shift( $parts );
 										}while( count($parts) );
-foreach( $word_stk as $pp ) $process_log .= $pp.'　';
+//foreach( $word_stk as $pp ) $process_log .= $pp.'　';
 										$dest_sorce = str_replace( $word_stk, '', $dest_sorce );
-$process_log .= "\n".$dest_sorce."\n";
+//$process_log .= "\n".$dest_sorce."\n";
 										break;
 									case '$SPRIT$':
 										if( extraWordCheck( $parts[0] ) ){
-file_put_contents( '/tmp/debug.txt', $process_log."\n", FILE_APPEND );
+//file_put_contents( '/tmp/debug.txt', 'Reservation.class.php: '.$process_log."\n", FILE_APPEND );
 											break 2;
 										}
 										$delim = array_shift( $parts );
-$process_log .= '$delim::'.$delim."\n";
+//$process_log .= '$delim::'.$delim."\n";
 										if( count($parts) ){
 											if( is_numeric($parts[0]) )
 												$offset = (int)array_shift( $parts );
@@ -1204,15 +1199,15 @@ $process_log .= '$delim::'.$delim."\n";
 												if( extraWordCheck( $parts[0] ) )
 													$offset = 0;
 												else{
-file_put_contents( '/tmp/debug.txt', $process_log."\n", FILE_APPEND );
+//file_put_contents( '/tmp/debug.txt', 'Reservation.class.php: '.$process_log."\n", FILE_APPEND );
 													break 2;	// 不正書式
 												}
 											}
 										}else
 											$offset = 0;
-$process_log .= '$offset::'.$offset."\n";
+//$process_log .= '$offset::'.$offset."\n";
 										$dest_sorce = fn_substr( $dest_sorce, 0, $delim, $offset );
-$process_log .= $dest_sorce."\n";
+//$process_log .= $dest_sorce."\n";
 										break;
 									case '$LIMIT$':
 										if( is_numeric($parts[0]) )
@@ -1221,16 +1216,16 @@ $process_log .= $dest_sorce."\n";
 											if( extraWordCheck( $parts[0] ) )
 												$cp_len = 0;
 											else{
-file_put_contents( '/tmp/debug.txt', $process_log."\n", FILE_APPEND );
+//file_put_contents( '/tmp/debug.txt', 'Reservation.class.php: '.$process_log."\n", FILE_APPEND );
 												break 2;	// 不正書式
 											}
 										}
-$process_log .= '$cp_len::'.$cp_len."\n";
+//$process_log .= '$cp_len::'.$cp_len."\n";
 										$dest_sorce = fn_substr( $dest_sorce, $cp_len );
-$process_log .= $dest_sorce."\n";
+//$process_log .= $dest_sorce."\n";
 										break;
 									default:
-file_put_contents( '/tmp/debug.txt', $process_log."\n", FILE_APPEND );
+//file_put_contents( '/tmp/debug.txt', 'Reservation.class.php: '.$process_log."\n", FILE_APPEND );
 										break 2;
 								}
 							}else

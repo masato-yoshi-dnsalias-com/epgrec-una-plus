@@ -20,6 +20,9 @@
 		for( $tuner=0; $tuner<$settings->bs_tuners;$tuner++ ){
 			shmop_write_surely( $shm_id, SEM_ST_START+$tuner, 0 );
 		}
+		for( $tuner=0; $tuner<$settings->grbs_tuners;$tuner++ ){
+			shmop_write_surely( $shm_id, SEM_GRST_START+$tuner, 0 );
+		}
 		for( $tuner=0; $tuner<EXTRA_TUNERS;$tuner++ ){
 			shmop_write_surely( $shm_id, SEM_EX_START+$tuner, 0 );
 		}

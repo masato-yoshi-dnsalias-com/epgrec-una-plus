@@ -18,16 +18,35 @@ $program_length = isset( $_GET['length'] ) ? (int)$_GET['length'] : (int)$settin
 ;
 
 $tuners_que = $tuners_name = array();
+/*if( (int)($settings->gr_tuners + $settings->grbs_tuners) > 0 ){
+	for( $cnt=0; $cnt<($settings->gr_tuners + $settings->grbs_tuners); $cnt++ ){
+		$tuners_que[]  = 'type="GR" AND tuner='.$cnt;
+		$tuners_name[] = 'GR'.$cnt;
+	}
+}*/
 if( (int)$settings->gr_tuners > 0 ){
 	for( $cnt=0; $cnt<$settings->gr_tuners; $cnt++ ){
 		$tuners_que[]  = 'type="GR" AND tuner='.$cnt;
 		$tuners_name[] = 'GR'.$cnt;
 	}
 }
+/*if( (int)($settings->bs_tuners + $settings->grbs_tuners) > 0 ){
+	for( $cnt=0; $cnt<($settings->bs_tuners + $settings->grbs_tuners); $cnt++ ){
+		$tuners_que[]  = 'type IN ("BS","CS") AND tuner='.$cnt;
+		$tuners_name[] = 'BS'.$cnt;
+	}
+}*/
 if( (int)$settings->bs_tuners > 0 ){
 	for( $cnt=0; $cnt<$settings->bs_tuners; $cnt++ ){
 		$tuners_que[]  = 'type IN ("BS","CS") AND tuner='.$cnt;
 		$tuners_name[] = 'BS'.$cnt;
+	}
+}
+if( (int)$settings->grbs_tuners > 0 ){
+	for( $cnt=0; $cnt<$settings->grbs_tuners; $cnt++ ){
+		$tuners_que[]  = '((type="GR" AND tuner='.($settings->gr_tuners + $cnt).') OR (type IN ("BS","CS") AND tuner='.($settings->bs_tuners + $cnt).'))';
+		//$tuners_que[]  = '(type="GR" AND tuner='.($settings->gr_tuners + $cnt).')';
+		$tuners_name[] = 'GR/BS'.$cnt;
 	}
 }
 if( EXTRA_TUNERS > 0 ){
@@ -227,12 +246,12 @@ $get_param2 = $single_tuner!==FALSE ? $_SERVER['SCRIPT_NAME'].'?tuner='.$tuners_
 $index_links = array();
 if( $single_tuner === FALSE ){
 	$tmp_link = str_replace( 'revchartTable', 'index', $get_param2 ).'&time='.date('YmdH', $top_time ).'&type=';
-	if( (int)$settings->gr_tuners > 0 ){
+	if( (int)($settings->gr_tuners + $settings->grbs_tuners) > 0 ){
 		$work['name']  = '地デジ';
 		$work['link']  = $tmp_link.'GR';
 		$index_links[] = $work;
 	}
-	if( (int)$settings->bs_tuners > 0 ){
+	if( (int)($settings->bs_tuners + $settings->grbs_tuners) > 0 ){
 		$work['name']  = 'BS';
 		$work['link']  = $tmp_link.$work['name'];
 		$index_links[] = $work;

@@ -63,9 +63,9 @@ if( isset($_GET['ch']) ){
 	$single_ch_disc = $_GET['ch'];
 	$type           = strtoupper( substr($_GET['ch'], 0, 2) );
 	// チャンネルセレクタ
-	if( $settings->gr_tuners != 0 )
+	if( ($settings->gr_tuners + $settings->grbs_tuners) != 0 )
 		$single_gr_selects = ch_collect( 'GR', $type==='GR' ? $single_ch_disc : FALSE, 'id' );
-	if( $settings->bs_tuners != 0 ){
+	if( ($settings->bs_tuners + $settings->grbs_tuners) != 0 ){
 		$single_bs_selects = ch_collect( 'BS', $type==='BS' ? $single_ch_disc : FALSE );
 		if( $settings->cs_rec_flg != 0 )
 			$single_cs_selects = ch_collect( 'CS', $type==='CS' ? $single_ch_disc : FALSE );
@@ -274,7 +274,7 @@ $get_param2 = $single_ch_disc ? $_SERVER['SCRIPT_NAME'].'?ch='.$single_ch_disc :
 // タイプ選択
 $types = array();
 $i = 0;
-if( $settings->gr_tuners != 0 ) {
+if( ($settings->gr_tuners + $settings->grbs_tuners) != 0 ) {
 	$types[$i]['selected'] = $type==='GR' ? 'class="selected"' : '';
 	$types[$i]['link']     = $_SERVER['SCRIPT_NAME'] . '?type=GR&length='.$program_length.'&time='.date( 'YmdH', $top_time);
 	$types[$i]['link2']    = $_SERVER['SCRIPT_NAME'] . '?type=GR&length='.$program_length;
@@ -282,7 +282,7 @@ if( $settings->gr_tuners != 0 ) {
 	$types[$i]['chs']      = $single_gr_selects;
 	$i++;
 }
-if( $settings->bs_tuners != 0 ) {
+if( ($settings->bs_tuners + $settings->grbs_tuners) != 0 ) {
 	$types[$i]['selected'] = $type==='BS' ? 'class="selected"' : '';
 	$types[$i]['link']     = $_SERVER['SCRIPT_NAME'] . '?type=BS&length='.$program_length.'&time='.date( 'YmdH', $top_time);
 	$types[$i]['link2']    = $_SERVER['SCRIPT_NAME'] . '?type=BS&length='.$program_length;

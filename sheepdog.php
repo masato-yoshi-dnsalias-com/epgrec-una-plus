@@ -47,8 +47,12 @@ function rest_check( $ch_disk, $sql_time ){
 }
 
 	$settings      = Settings::factory();
-	$tuners        = (int)$settings->gr_tuners;
+	$tuners        = (int)$settings->gr_tuners + (int)$settings->grbs_tuners;
+	$gr_tuners     = (int)$settings->gr_tuners;
+	$bs_tuners     = (int)$settings->bs_tuners;
+	$grbs_tuners   = (int)$settings->grbs_tuners;
 	$usable_tuners = (int)$argv[1];
+	$chk_tuners    = $tuners > $usable_tuners ? $usable_tuners : $tuners;
 
 // 地上波を処理する
 if( $usable_tuners !== 0 ){
@@ -61,14 +65,19 @@ if( $usable_tuners !== 0 ){
 	$ch_obj  = new DBRecord( CHANNEL_TBL );
 	$ch_disc = get_ch_disk( $ch_obj, $ch_disk );
 	for( $sem_cnt=0; $sem_cnt<$tuners; $sem_cnt++ ){
-		$sem_id[$sem_cnt] = sem_get_surely( $sem_cnt+SEM_GR_START );
+		if( $sem_cnt < $gr_tuners )
+			$sem_id[$sem_cnt] = sem_get_surely( $sem_cnt+SEM_GR_START );
+		else
+			$sem_id[$sem_cnt] = sem_get_surely( $sem_cnt+SEM_GRST_START );
 		if( $sem_id[$sem_cnt] === FALSE )
 			exit;
 	}
 	$shm_id   = shmop_open_surely();
 	$loop_tim = 10;
-	$sql_cmd  = 'complete=0 AND type="GR"'.create_sql_time( $base_time + $settings->rec_switch_time + $settings->former_time + $loop_tim + 2 );
-	$sql_chk  = 'complete=0 AND type="GR" AND starttime>now() AND starttime<addtime( now(), sec_to_time('.( $base_time + PADDING_TIME ).') )';
+	$gr_sql_cmd  = 'complete=0 AND type="GR"'.create_sql_time( $base_time + $settings->rec_switch_time + $settings->former_time + $loop_tim + 2 );
+	$gr_sql_chk  = 'complete=0 AND type="GR" AND starttime>now() AND starttime<addtime( now(), sec_to_time('.( $base_time + PADDING_TIME ).') )';
+	$bs_sql_cmd  = 'complete=0 AND (type="BS" OR type="CS")'.create_sql_time( $base_time + $settings->rec_switch_time + $settings->former_time + $loop_tim + 2 );
+	$bs_sql_chk  = 'complete=0 AND (type="BS" OR type="CS") AND starttime>now() AND starttime<addtime( now(), sec_to_time('.( $base_time + PADDING_TIME ).') )';
 	$use_cnt  = 0;
 	$end_flag = FALSE;
 	$pro_cnt  = 0;
@@ -78,20 +87,46 @@ if( $usable_tuners !== 0 ){
 		if( !$end_flag ){
 			if( $use_cnt < $usable_tuners ){
 				// 録画重複チェック
-				$revs       = $res_obj->fetch_array( null, null, $sql_cmd );
-				$off_tuners = count( $revs );
-				if( $off_tuners+$use_cnt < $tuners ){
+				$gr_revs       = $res_obj->fetch_array( null, null, $gr_sql_cmd );
+				$gr_off_tuners = count( $gr_revs );
+				$off_tuners = $gr_off_tuners;
+//file_put_contents( '/tmp/debug.txt', 'sheepdog.php: $gr_off_tuners='.$gr_off_tuners."\n", FILE_APPEND );
+//file_put_contents( '/tmp/debug.txt', 'sheepdog.php: $off_tuners='.$off_tuners."\n", FILE_APPEND );
+				if( $grbs_tuners > 0 ){
+					$bs_revs       = $res_obj->fetch_array( null, null, $bs_sql_cmd );
+					$bs_off_tuners = count( $bs_revs );
+//file_put_contents( '/tmp/debug.txt', 'sheepdog.php: $bs_off_tuners='.$bs_off_tuners."\n", FILE_APPEND );
+					//$off_tuners = $off_tuners + ($bs_tuners > $bs_off_tuners ? 0 : ($bs_off_tuners - $bs_tuners > 0 ? $bs_off_tuners - $bs_tuners : 0));
+					if( ($bs_off_tuners - $bs_tuners) > 0 )
+						$off_tuners = $off_tuners + ( $bs_off_tuners - $bs_tuners);
+//file_put_contents( '/tmp/debug.txt', 'sheepdog.php: $off_tuners='.$off_tuners."\n", FILE_APPEND );
+				}else{
+					$bs_off_tuners = 0;
+				}
+//file_put_contents( '/tmp/debug.txt', 'sheepdog.php: $use_cnt='.$use_cnt."\n", FILE_APPEND);
+				if( $off_tuners+$use_cnt < $chk_tuners ){
 					$lp_st = time();
 					do{
 						//空チューナー降順探索
 						for( $slc_tuner=$tuners-1; $slc_tuner>=0; $slc_tuner-- ){
-							for( $cnt=0; $cnt<$off_tuners; $cnt++ ){
-								if( $revs[$cnt]['tuner'] == $slc_tuner )
+						//for( $slc_tuner=$off_tuners; $slc_tuner<$tuners; $slc_tuner++ ){
+							for( $cnt=0; $cnt<$gr_off_tuners; $cnt++ ){
+								if( $gr_revs[$cnt]['tuner'] == $slc_tuner )
+									continue 2;
+							}
+							for( $cnt=$bs_tuners; $cnt<$bs_off_tuners; $cnt++ ){
+								if( $bs_revs[$cnt]['tuner'] == $slc_tuner )
 									continue 2;
 							}
 							if( sem_acquire( $sem_id[$slc_tuner] ) === TRUE ){
-								$shm_name = $slc_tuner + SEM_GR_START;
+//file_put_contents( '/tmp/debug.txt', 'sheepdog.php: $slc_tuner='.$slc_tuner.' , $grbs_tuners='.$grbs_tuners.' , $gr_tuners='.$gr_tuners.' , $bs_tuners='.$bs_tuners."\n", FILE_APPEND );
+								// 専用チューナー、共有チューナーでセマフォを変える
+								if( $slc_tuner < $gr_tuners )
+									$shm_name = $slc_tuner + SEM_GR_START;
+								else
+									$shm_name = ($slc_tuner - $gr_tuners) + SEM_GRST_START;
 								$smph     = shmop_read_surely( $shm_id, $shm_name );
+//file_put_contents( '/tmp/debug.txt', 'sheepdog.php: $slc_tuner='.$slc_tuner.' , $shm_name='.$shm_name.' , $smph='.$smph."\n", FILE_APPEND );
 								if( $smph==2 && $tuners-$off_tuners===1 ){
 									// リアルタイム視聴停止
 									$real_view = (int)trim( file_get_contents( REALVIEW_PID ) );
@@ -104,7 +139,7 @@ if( $usable_tuners !== 0 ){
 									while( sem_release( $sem_id[$slc_tuner] ) === FALSE )
 										usleep( 100 );
 
-									$rr = $res_obj->fetch_array( null, null, $sql_chk );
+									$rr = $res_obj->fetch_array( null, null, $gr_sql_chk );
 									if( count( $rr ) > 0 ){
 										$motion = TRUE;
 										if( $slc_tuner < TUNER_UNIT1 ){
@@ -128,19 +163,29 @@ if( $usable_tuners !== 0 ){
 									if( $motion ){
 										// 停波再確認と受信CH更新
 										while(1){
+//file_put_contents( '/tmp/debug.txt', 'sheepdog.php: $ch_disc='.$ch_disc.' , $sql_time='.$sql_time."\n", FILE_APPEND );
 											if( !rest_check( $ch_disc, $sql_time ) )
 												break;
-											if( !( $gr_ch_value = next($GR_CHANNEL_MAP) ) ) {
-												$gr_ch_key = key($GR_CHANNEL_MAP);
-												list( $ch_disk, $value ) = array($gr_ch_key,$gr_ch_value);
+//file_put_contents( '/tmp/debug.txt', 'sheepdog.php: $gr_ch_value='.$gr_ch_value.' , $ch_disc='.$ch_disc.' , $ch_disk='.$ch_disk."\n", FILE_APPEND );
+
+											// 受信CH更新
+											$gr_ch_value = next($GR_CHANNEL_MAP);
+											$gr_ch_key = key($GR_CHANNEL_MAP);
+											list( $ch_disk, $value ) = array($gr_ch_key,$gr_ch_value);
+
+											if( !$gr_ch_value ){
+												//list( $ch_disk, $value ) = array($gr_ch_key,$gr_ch_value);
 												shmop_write_surely( $shm_id, $shm_name, 0 );
 												$end_flag = TRUE;
 												goto GATHER_SHEEPS;		// 終了
 											}
+
 											$ch_disc = get_ch_disk( $ch_obj, $ch_disk );
+
 										}
 
 										$cmdline = INSTALL_PATH.'/airwavesSheep.php GR '.$slc_tuner.' '.$value.' '.$rec_time.' '.$ch_disk;
+//file_put_contents( '/tmp/debug.txt', 'sheepdog.php: sheep_release $cmdline='.$cmdline."\n", FILE_APPEND );
 										$rec_pro = sheep_release( $cmdline );
 										if( $rec_pro !== FALSE )
 											$pro[] = $rec_pro;
@@ -189,9 +234,16 @@ if( $usable_tuners !== 0 ){
 				sleep(1);
 			//EPG受信チューナー数確認
 			$use = 0;
-			for( $tune_cnt=0; $tune_cnt<$tuners; $tune_cnt++ )
-				if( shmop_read_surely( $shm_id, $tune_cnt+SEM_GR_START ) )
-					$use++;
+			for( $tune_cnt=0; $tune_cnt<$tuners; $tune_cnt++ ){
+				if( $tune_cnt < $gr_tuners){
+					if( shmop_read_surely( $shm_id, $tune_cnt + SEM_GR_START ) )
+						$use++;
+				}
+				else{
+					if( shmop_read_surely( $shm_id, $tune_cnt + SEM_GRST_START - $gr_tuners ) )
+						$use++;
+				}
+			}
 			if( $use_cnt > $use )
 				$use_cnt = $use;
 		}else
@@ -199,9 +251,11 @@ if( $usable_tuners !== 0 ){
 GATHER_SHEEPS:
 		//全子プロセス(EPG受信・更新)終了待ち
 		$pro_cnt = count($pro);
+//file_put_contents( '/tmp/debug.txt', 'sheepdog.php: 全子プロセス(EPG受信・更新)終了待ち($pro_cnt='.$pro_cnt.")\n", FILE_APPEND );
 		if( $pro_cnt ){
 			$cnt = 0;
 			do{
+//file_put_contents( '/tmp/debug.txt', 'sheepdog.php: $cnt='.$cnt.' , $pro_cnt='.$pro_cnt.' , $pro['.$cnt.']='.$pro[$cnt]."\n", FILE_APPEND );
 				if( $pro[$cnt] !== FALSE ){
 					$st = proc_get_status( $pro[$cnt] );
 					if( $st['running'] == FALSE ){

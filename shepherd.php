@@ -35,6 +35,7 @@ function exit_shephewrd(){
 	$settings  = Settings::factory();
 	$GR_tuners = (int)$settings->gr_tuners;
 	$BS_tuners = (int)$settings->bs_tuners;
+	$GRBS_tuners = (int)$settings->grbs_tuners;
 	$CS_flag   = $settings->cs_rec_flg==0 ? FALSE : TRUE;
 
 	run_user_regulate();
@@ -111,7 +112,7 @@ function exit_shephewrd(){
 	// 面倒なので手抜き テンポラリ容量は十分確保しましょう(^_^)
 	$tmpdrive_size = disk_free_space( '/tmp' );
 	$GR_num = count( $GR_CHANNEL_MAP );
-	if( $BS_tuners > 0 ){
+	if( ($BS_tuners + $GRBS_tuners) > 0 ){
 		if( !$CS_flag ){
 			$bs_max = 1;
 //			$bs_tim = array( 0, 220 + 15 + 90 );	// BS only
@@ -124,22 +125,30 @@ function exit_shephewrd(){
 		}
 	}
 	if( $rec_cmds[PT1_CMD_NUM]['epgTs'] && TUNER_UNIT1>0 ){
-		$gr_pt1 = $GR_tuners<TUNER_UNIT1? $GR_tuners : TUNER_UNIT1;
-		$bs_pt1 = $BS_tuners<TUNER_UNIT1? $BS_tuners : TUNER_UNIT1;
+		$gr_pt1   = ($GR_tuners + $GRBS_tuners) < TUNER_UNIT1? ($GR_tuners + $GRBS_tuners) : TUNER_UNIT1;
+		$bs_pt1   = ($BS_tuners + $GRBS_tuners) < TUNER_UNIT1? ($BS_tuners + $GRBS_tuners) : TUNER_UNIT1;
+		$grbs_pt1 = $GRBS_tuners;
 	}else{
-		$gr_pt1 = 0;
-		$bs_pt1 = 0;
+		$gr_pt1   = 0;
+		$bs_pt1   = 0;
+		$grbs_pt1 = 0;
 	}
-	for( $tuner=0; $tuner<$GR_tuners-TUNER_UNIT1; $tuner++ ){
+file_put_contents( '/tmp/debug.txt', '$gr_pt1='.$gr_pt1.',$bs_pt1='.$bs_pt1."\n", FILE_APPEND );
+file_put_contents( '/tmp/debug.txt', '$GR_tuners='.$GR_tuners.',$GRBS_tuners='.$GRBS_tuners.',TUNER_UNIT1='.TUNER_UNIT1."\n", FILE_APPEND );
+	for( $tuner=0; $tuner<($GR_tuners + $GRBS_tuners) - TUNER_UNIT1; $tuner++ ){
 		if( $rec_cmds[$OTHER_TUNERS_CHARA['GR'][$tuner]['reccmd']]['epgTs'] )
 			$gr_pt1++;
+file_put_contents( '/tmp/debug.txt', '$gr_pt1='.$gr_pt1."\n", FILE_APPEND );
 	}
-	for( $tuner=0; $tuner<$BS_tuners-TUNER_UNIT1; $tuner++ ){
+	for( $tuner=0; $tuner<($BS_tuners + $GRBS_tuners) - TUNER_UNIT1; $tuner++ ){
 		if( $rec_cmds[$OTHER_TUNERS_CHARA['BS'][$tuner]['reccmd']]['epgTs'] )
 			$bs_pt1++;
+file_put_contents( '/tmp/debug.txt', '$bs_pt1='.$bs_pt1."\n", FILE_APPEND );
 	}
-	$gr_oth = $GR_tuners - $gr_pt1;
-	$bs_oth = $BS_tuners - $bs_pt1;
+file_put_contents( '/tmp/debug.txt', '$gr_pt1='.$gr_pt1.',$bs_pt1='.$bs_pt1."\n", FILE_APPEND );
+	$gr_oth = ($GR_tuners + $GRBS_tuners) - $gr_pt1;
+	$bs_oth = ($BS_tuners + $GRBS_tuners) - $bs_pt1;
+file_put_contents( '/tmp/debug.txt', '$gr_oth='.$gr_oth.',$bs_oth='.$bs_oth."\n", FILE_APPEND );
 	if( $gr_pt1>0 || $bs_pt1>0 ){
 		if( $gr_oth && $tmpdrive_size<=(GR_OTH_EPG_SIZE+GR_XML_SIZE) ){
 			reclog( 'shepherd.php::テンポラリー容量が不十分なためEPG更新が出来ません。空き容量を確保してください。', EPGREC_ERR );
@@ -178,7 +187,7 @@ function exit_shephewrd(){
 			}
 		}else
 			$gr_work_size = 0;
-		if( $gr_pt1 && $GR_tuners>$gr_use ){
+		if( $gr_pt1 && ($GR_tuners + $GRBS_tuners) > $gr_use ){
 			if( $gr_oth == 0 ){
 				$gr_work_size = GR_PT1_EPG_SIZE + GR_XML_SIZE;
 				if( $gr_work_size >= $tmpdrive_size ){
@@ -190,7 +199,7 @@ function exit_shephewrd(){
 				}else
 					$gr_use = 1;
 			}
-			while( $GR_tuners > $gr_use ){
+			while( ($GR_tuners + $GRBS_tuners)  > $gr_use ){
 				if( $gr_work_size+GR_PT1_EPG_SIZE < $tmpdrive_size ){
 					$gr_work_size += GR_PT1_EPG_SIZE;
 					$gr_use++;
@@ -267,7 +276,7 @@ ST_ESP:
 		// XML取り込みは、BS 2.5分(atomD525) CS 1分(仮定)を想定
 		$gr_rec_tm = FIRST_REC + $settings->rec_switch_time + 1;
 		$gr_bs_sepa = FALSE;
-		if( $BS_tuners > 0 ){
+		if( ($BS_tuners + $GRBS_tuners) > 0 ){
 			if( $tune_cnts < 3 ){
 				$gr_use = $GR_tuners>$tune_cnts ? $tune_cnts : $GR_tuners;
 				$bs_use = 0;
@@ -280,8 +289,8 @@ ST_ESP:
 					reclog( 'shepherd.php::テンポラリー容量が不十分なため地上波･衛星波並列受信が出来ません。空き容量を確保してください。', EPGREC_WARN );
 				}else{
 					$bs_tmp = array( 0, 3, 4, 6 );
-					if( $GR_tuners > 0 ){
-						if( $bs_tmp[$bs_max]+$GR_tuners > $tune_cnts ){
+					if( ($GR_tuners + $GRBS_tuners)  > 0 ){
+						if( $bs_tmp[$bs_max]+($GR_tuners + $GRBS_tuners) > $tune_cnts ){
 							$minimam =11 * 60;
 							$bs_use  = $bs_max;
 							for( $bs_stk=$bs_max; $bs_stk>0; $bs_stk-- )
@@ -297,7 +306,7 @@ ST_ESP:
 							$gr_times = (int)ceil( $GR_num / $gr_use ) * $gr_rec_tm;
 							$para_tm  = $gr_times<$bs_tim[$bs_use] ? $bs_tim[$bs_use] : $gr_times;
 							//セパレート･モード時の所要時間算出
-							$gr_use_sepa = $GR_tuners>$tune_cnts ? $tune_cnts : $GR_tuners;
+							$gr_use_sepa = ($GR_tuners + $GRBS_tuners) > $tune_cnts ? $tune_cnts : ($GR_tuners + $GRBS_tuners);
 							$gr_times    = (int)ceil( $GR_num / $gr_use_sepa ) * $gr_rec_tm;
 							for( $bs_use_sepa=$bs_max; $bs_use_sepa>0; $bs_use_sepa-- )
 								if( $bs_tmp[$bs_use_sepa] <= $tune_cnts )
@@ -310,7 +319,7 @@ ST_ESP:
 								$bs_use = $bs_use_sepa;
 							}
 						}else{
-							$gr_use = $GR_tuners;
+							$gr_use = ($GR_tuners + $GRBS_tuners);
 							$bs_use = $bs_max;
 						}
 					}else{
@@ -322,7 +331,7 @@ ST_ESP:
 				}
 			}
 		}else{
-			$gr_use = $GR_tuners>$tune_cnts ? $tune_cnts : $GR_tuners;
+			$gr_use = ($GR_tuners + $GRBS_tuners) > $tune_cnts ? $tune_cnts : ($GR_tuners + $GRBS_tuners);
 			$bs_use = 0;
 		}
 	}
@@ -331,6 +340,7 @@ ST_ESP:
 
 	// BS/CSを処理する
 	if( $bs_use > 0 ){
+file_put_contents( '/tmp/debug.txt', INSTALL_PATH.'/collie.php '.$bs_use."\n", FILE_APPEND );
 		$proST = dog_release( INSTALL_PATH.'/collie.php '.$bs_use );
 		if( $gr_bs_sepa ){
 			//セパレート･モード時のウェイト
@@ -359,6 +369,8 @@ ST_ESP:
 	}
 	// 地上波を処理する
 	if( $gr_use > 0 ){
+		$gr_use=($BS_tuners - $bs_max) > 0 ? $gr_use : $gr_use + ($BS_tuners - $bs_max);
+file_put_contents( '/tmp/debug.txt', INSTALL_PATH.'/sheepdog.php '.$gr_use."\n", FILE_APPEND );
 		$proGR    = dog_release( INSTALL_PATH.'/sheepdog.php '.$gr_use );
 		$sleep_tm = (int)ceil( $GR_num / $gr_use ) * FIRST_REC;
 	}else{

@@ -70,22 +70,30 @@ function sig_handler()
 	$ch_disc  = $type==='GR' ? strtok( $rev->channel_disc, '_' ) : '/'.$type;
 	$rec_tm   = FIRST_REC;
 	$pid      = posix_getpid();
+	$gr_tuners   = (int)$settings->gr_tuners;
+	$bs_tuners   = (int)$settings->bs_tuners;
+	$grbs_tuners = (int)$settings->grbs_tuners;
 	if( $type === 'GR' ){
-		$smf_type = 'GR';
-		$sql_type = 'type="GR"';
-		$smf_key  = SEM_GR_START;
-		$tuners   = (int)$settings->gr_tuners;
+		$smf_type   = 'GR';
+		$sql_type   = 'type="GR"';
+		$smf_key    = SEM_GR_START;
+		$oth_key    = SEM_GRST_START;
+		$chk_tuners = $gr_tuners;
+		$tuners     = (int)($settings->gr_tuners + $settings->grbs_tuners);
 	}else{
 		if( $type === 'EX' ){
-			$smf_type = 'EX';
-			$sql_type = 'type="EX"';
-			$smf_key  = SEM_EX_START;
-			$tuners   = EXTRA_TUNERS;
+			$smf_type   = 'EX';
+			$sql_type   = 'type="EX"';
+			$smf_key    = SEM_EX_START;
+			$chk_tuners = 0;
+			$tuners     = EXTRA_TUNERS;
 		}else{
-			$smf_type = 'BS';
-			$sql_type = '(type="BS" OR type="CS")';
-			$smf_key  = SEM_ST_START;
-			$tuners   = (int)$settings->bs_tuners;
+			$smf_type   = 'BS';
+			$sql_type   = '(type="BS" OR type="CS")';
+			$smf_key    = SEM_ST_START;
+			$oth_key    = SEM_GRST_START;
+			$chk_tuners = $bs_tuners;
+			$tuners     = (int)($settings->bs_tuners + $settings->gr_tuners);
 		}
 		strtok( $rev->channel_disc, '_' );
 		$sid = strtok( '_' );
@@ -94,7 +102,10 @@ function sig_handler()
 	$pre_temp_ts = $settings->temp_data.'_'.$smf_type;
 
 	for( $sem_cnt=0; $sem_cnt<$tuners; $sem_cnt++ ){
-		$sem_id[$sem_cnt] = sem_get_surely( $sem_cnt+$smf_key );
+		if( $sem_cnt < $chk_tuners)
+			$sem_id[$sem_cnt] = sem_get_surely( $sem_cnt+$smf_key );
+		else
+			$sem_id[$sem_cnt] = sem_get_surely( $sem_cnt+$oth_key );
 		if( $sem_id[$sem_cnt] === FALSE )
 			exit;
 	}
@@ -151,8 +162,18 @@ function sig_handler()
 			break;
 		}
 		$sql_cmd    = $my_revid.'complete=0 AND '.$sql_type.' AND endtime>subtime( now(), sec_to_time('.($settings->extra_time+2).') ) AND starttime<addtime( now(), sec_to_time('.$epg_tm.') )';
+		$oth_sql_cmd    = $my_revid.'complete=0 AND '.$oth_type.' AND endtime>subtime( now(), sec_to_time('.($settings->extra_time+2).') ) AND starttime<addtime( now(), sec_to_time('.$epg_tm.') )';
 		$revs       = $res_obj->fetch_array( null, null, $sql_cmd );
 		$off_tuners = count( $revs );
+		if( ($type === "GR" && $grbs_tuners > 0) || ($type === "BS" && $grbs_tuners > 0) ){
+			$oth_revs       = $res_obj->fetch_array( null, null, $oth_sql_cmd );
+			$oth_off_tuners = count( $oth_revs );
+			if($type === "GR" && ($bs_tuners - $oth_off_tuners) < 0)
+				$off_tuners = $off_tuners - ($bs_tuners - $oth_off_tuners);
+			elseif( $type === "BS" && ($gr_tuners - $oth_off_tuners) < 0)
+				$off_tuners = $off_tuners - ($gr_tuners - $oth_off_tuners);
+		}
+//file_put_contents( '/tmp/debug.txt', '"scoutEpg.php: $off_tuners='.$off_tuners.' , $oth_off_tuners='.$oth_off_tuners."\n", FILE_APPEND );
 		if( $off_tuners < $tuners ){
 			//空チューナー降順探索
 			for( $slc_tuner=$tuners-1; $slc_tuner>=0; $slc_tuner-- ){
@@ -161,8 +182,11 @@ function sig_handler()
 						continue 2;
 				}
 				if( sem_acquire( $sem_id[$slc_tuner] ) === TRUE ){
-					$shm_name = $smf_key + $slc_tuner;
-					$smph     = shmop_read_surely( $shm_id, $shm_name );
+					if( ($type === 'EX') || ($type != 'EX' && $slc_tuner < $chk_tuners) )
+						$shm_name = $smf_key + $slc_tuner;
+					else
+						$shm_name = ($slc_tuner - $chk_tuners) + $oth_key;
+					$smph = shmop_read_surely( $shm_id, $shm_name );
 					if( $smph===2 && $tuners-$off_tuners===1 ){
 						// リアルタイム視聴停止
 						$real_view = (int)trim( file_get_contents( REALVIEW_PID ) );

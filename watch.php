@@ -31,15 +31,22 @@ function searchProces( $pid )
 		$sid = $_GET['sid'];
 	$GR_max = (int)$settings->gr_tuners;
 	$ST_max = (int)$settings->bs_tuners;
+	$GRST_max = (int)$settings->grbs_tuners;
 	$EX_max = EXTRA_TUNERS;
 	for( $sem_cnt=0; $sem_cnt<$GR_max; $sem_cnt++ ){
-		$rv_smph          = $sem_cnt + SEM_GR_START;
+		if( $sem_cnt < $GR_max)
+			$rv_smph = $sem_cnt + SEM_GR_START;
+		else
+			$rv_smph = $sem_cnt + SEM_GRST_START;
 		$sem_id[$rv_smph] = sem_get_surely( $rv_smph );
 		if( $sem_id[$rv_smph] === FALSE )
 			exit;
 	}
 	for( $sem_cnt=0; $sem_cnt<$ST_max; $sem_cnt++ ){
-		$rv_smph          = $sem_cnt + SEM_ST_START;
+		if( $sem_cnt < $ST_max)
+			$rv_smph = $sem_cnt + SEM_ST_START;
+		else
+			$rv_smph = $sem_cnt + SEM_GRST_START;
 		$sem_id[$rv_smph] = sem_get_surely( $rv_smph );
 		if( $sem_id[$rv_smph] === FALSE )
 			exit;
@@ -55,8 +62,10 @@ function searchProces( $pid )
 		switch( $type ){
 			case 'GR':
 				$sql_type = 'type="GR"';
+				$oth_type = '(type="BS" OR type="CS")';
 				$smf_key  = SEM_GR_START;
-				$tuners   = $GR_max;
+				$oth_key  = SEM_GRST_START;
+				$tuners   = $GR_max + $GRST_max;
 				break;
 			case 'EX':
 				$sql_type = 'type="EX"';
@@ -65,8 +74,10 @@ function searchProces( $pid )
 				break;
 			default:	//BS/CS
 				$sql_type = '(type="BS" OR type="CS")';
+				$oth_type = 'type="GR"';
 				$smf_key  = SEM_ST_START;
-				$tuners   = $ST_max;
+				$oth_key  = SEM_GRST_START;
+				$tuners   = $ST_max + $GRST_max;
 				break;
 		}
 	}else
@@ -91,10 +102,15 @@ function searchProces( $pid )
 					// satelite
 					$now_tuner = $rv_smph - SEM_ST_START;
 					$now_type  = 'BS';
-				}else{
+				}else
+				if( $rv_smph < SEM_GRST_START ){
 					// EX
 					$now_tuner = $rv_smph - SEM_EX_START;
 					$now_type  = 'EX';
+				}else{
+					// GRST
+					$now_tuner = $rv_smph - SEM_GRST_START;
+					$now_type  = 'GRBS';
 				}
 				$wave_disc = $type==='CS' ? 'BS' : $type;
 				$ctl_chng  = FALSE;
@@ -184,8 +200,18 @@ function searchProces( $pid )
 	$res_obj = new DBRecord( RESERVE_TBL );
 	while(1){
 		$sql_cmd    = 'complete=0 AND '.$sql_type.' AND endtime>now() AND starttime<addtime( now(), "00:03:00" )';
+		$oth_sql_cmd    = 'complete=0 AND '.$oth_type.' AND endtime>now() AND starttime<addtime( now(), "00:03:00" )';
 		$revs       = $res_obj->fetch_array( null, null, $sql_cmd );
 		$off_tuners = count( $revs );
+		if( ($type === "GR" && $grbs_tuners > 0) || ($type === "BS" && $grbs_tuners > 0) ){
+			$oth_revs       = $res_obj->fetch_array( null, null, $oth_sql_cmd );
+			$oth_off_tuners = count( $oth_revs );
+			if($type === "GR" && ($bs_tuners - $oth_off_tuners) < 0)
+				$off_tuners = $off_tuners - ($bs_tuners - $oth_off_tuners);
+			elseif( $type === "BS" && ($gr_tuners - $oth_off_tuners) < 0)
+				$off_tuners = $off_tuners - ($gr_tuners - $oth_off_tuners);
+//file_put_contents( '/tmp/debug.txt', 'watch.php: $oth_off_tuners='.$oth_off_tuners.' , $oth_off_tuners='.$oth_off_tuners."\n", FILE_APPEND );
+		}
 		if( $off_tuners < $tuners ){
 			//空チューナー降順探索
 			for( $slc_tuner=$tuners-1; $slc_tuner>=0; $slc_tuner-- ){
@@ -193,7 +219,10 @@ function searchProces( $pid )
 					if( $revs[$cnt]['tuner'] == $slc_tuner )
 						continue 2;
 				}
-				$shm_name = $smf_key + $slc_tuner;
+				if( ($type === 'EX') || ($type === 'GR' && $slc_tuner < $GR_max) || ($type === 'BS' && $slc_tuner < $ST_max) )
+						$shm_name = $smf_key + $slc_tuner;
+				else
+						$shm_name = $oth_key + $slc_tuner;
 				if( sem_acquire( $sem_id[$shm_name] ) === TRUE ){
 					$smph = shmop_read_surely( $shm_id, $shm_name );
 					if( $smph == 0 ){

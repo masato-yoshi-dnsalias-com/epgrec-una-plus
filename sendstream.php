@@ -85,22 +85,32 @@ if( $pipe_mode ){
 			exit;
 		}
 		$type = $_GET['type'];
+		$gr_tuners   = (int)$settings->gr_tuners;
+		$bs_tuners   = (int)$settings->bs_tuners;
+		$grbs_tuners = (int)$settings->grbs_tuners;
 		switch( $type ){
 			case 'GR':
-				$sql_type = 'type="GR"';
-				$smf_key  = SEM_GR_START;
-				$tuners   = (int)$settings->gr_tuners;
+				$sql_type   = 'type="GR"';
+				$oth_type   = '(type="BS" OR type="CS")';
+				$smf_key    = SEM_GR_START;
+				$oth_key    = SEM_GRST_START;
+				$chk_tuners = $gr_tuners;
+				$tuners     = (int)($settings->gr_tuners + $settings->grbs_tuners);
 				break;
 			case 'EX':
-				$sql_type = 'type="EX"';
-				$smf_key  = SEM_EX_START;
-				$tuners   = EXTRA_TUNERS;
+				$sql_type   = 'type="EX"';
+				$smf_key    = SEM_EX_START;
+				$chk_tuners = 0;
+				$tuners     = EXTRA_TUNERS;
 				break;
 			case 'BS':
 			case 'CS':
-				$sql_type = '(type="BS" OR type="CS")';
-				$smf_key  = SEM_ST_START;
-				$tuners   = (int)$settings->bs_tuners;
+				$sql_type   = '(type="BS" OR type="CS")';
+				$oth_type   = 'type="GR"';
+				$smf_key    = SEM_ST_START;
+				$oth_key    = SEM_GRST_START;
+				$chk_tuners = $bs_tuners;
+				$tuners     = (int)($settings->bs_tuners + $settings->gr_tuners);
 				break;
 			default:
 				shmop_close( $shm_id );
@@ -108,7 +118,10 @@ if( $pipe_mode ){
 		}
 		$sem_id = array();
 		for( $sem_cnt=0; $sem_cnt<$tuners; $sem_cnt++ ){
-			$rv_smph          = $smf_key + $sem_cnt;
+			if( $sem_cnt < $chk_tuners)
+				$rv_smph = $smf_key + $sem_cnt;
+			else
+				$rv_smph = $oth_key + $sem_cnt;
 			$sem_id[$rv_smph] = sem_get_surely( $rv_smph );
 			if( $sem_id[$rv_smph] === FALSE ){
 				shmop_close( $shm_id );
@@ -117,10 +130,20 @@ if( $pipe_mode ){
 		}
 		$res_obj = new DBRecord( RESERVE_TBL );
 		$sql_cmd = 'complete=0 AND '.$sql_type.' AND endtime>now() AND starttime<addtime( now(), "00:03:00" )';
+		$oth_sql_cmd = 'complete=0 AND '.$oth_type.' AND endtime>now() AND starttime<addtime( now(), "00:03:00" )';
 		$lp      = 0;
 		while(1){
 			$revs       = $res_obj->fetch_array( null, null, $sql_cmd );
 			$off_tuners = count( $revs );
+			if( ($type === "GR" && $grbs_tuners > 0) || ($type === "BS" && $grbs_tuners > 0) ){
+				$oth_revs       = $res_obj->fetch_array( null, null, $oth_sql_cmd );
+				$oth_off_tuners = count( $oth_revs );
+				if($type === "GR" && ($bs_tuners - $oth_off_tuners) < 0)
+					$off_tuners = $off_tuners - ($bs_tuners - $oth_off_tuners);
+				elseif( $type === "BS" && ($gr_tuners - $oth_off_tuners) < 0)
+					$off_tuners = $off_tuners - ($gr_tuners - $oth_off_tuners);
+			}
+//file_put_contents( '/tmp/debug.txt', 'sendstream.php: $sendstream.phpff_tuners='.$off_tuners.' , $oth_off_tuners='.$oth_off_tuners."\n", FILE_APPEND );
 			if( $off_tuners < $tuners ){
 				//空チューナー降順探索
 				for( $slc_tuner=$tuners-1; $slc_tuner>=0; $slc_tuner-- ){
@@ -128,7 +151,10 @@ if( $pipe_mode ){
 						if( $revs[$cnt]['tuner'] == $slc_tuner )
 							continue 2;
 					}
-					$shm_name = $smf_key + $slc_tuner;
+					if( ($type === 'EX') || ($type === 'GR' && $slc_tuner < $gr_tuners) || ($type === 'BS' && $slc_tuner < $bs_tuners) )
+							$shm_name = $smf_key + $slc_tuner;
+					else
+							$shm_name = ($slc_tuner - $chk_tuners) + $oth_key;
 					if( sem_acquire( $sem_id[$shm_name] ) === TRUE ){
 						$smph = shmop_read_surely( $shm_id, $shm_name );
 						if( $smph === 0 ){

@@ -61,7 +61,10 @@ function rest_check( $ch_disk, $sql_time ){
 }
 
 	$settings      = Settings::factory();
-	$tuners        = (int)$settings->bs_tuners;
+	$bs_tuners     = (int)$settings->bs_tuners;
+	$gr_tuners     = (int)$settings->gr_tuners;
+	$grbs_tuners   = (int)$settings->grbs_tuners;
+	$tuners        = (int)($settings->bs_tuners + $settings->grbs_tuners);
 	$usable_tuners = (int)$argv[1];
 
 // 衛星波を処理する
@@ -79,12 +82,16 @@ if( $usable_tuners !== 0 ){
 	$sheep_lmt = $settings->cs_rec_flg==0 ? 1 : 3;
 	$add_time  = $settings->rec_switch_time + 2;
 	for( $sem_cnt=0; $sem_cnt<$tuners; $sem_cnt++ ){
-		$sem_id[$sem_cnt] = sem_get_surely( $sem_cnt+SEM_ST_START );
+		if( $sem_cnt < $bs_tuners)
+			$sem_id[$sem_cnt] = sem_get_surely( $sem_cnt+SEM_ST_START );
+		else
+			$sem_id[$sem_cnt] = sem_get_surely( $sem_cnt+SEM_GRST_START );
 		if( $sem_id[$sem_cnt] === FALSE )
 			exit;
 	}
 	$shm_id   = shmop_open_surely();
-	$sql_base = 'complete=0 AND (type="BS" OR type="CS")';
+	$bs_sql_base = 'complete=0 AND (type="BS" OR type="CS")';
+	$gr_sql_base = 'complete=0 AND type="GR"';
 	$loop_tim = 10;
 	$key      = 0;
 	$use_cnt  = 0;
@@ -96,24 +103,42 @@ if( $usable_tuners !== 0 ){
 	do{
 		if( !$end_flag ){
 			$sql_time = $rec_time[$key] + $add_time;
-			$sql_cmd  = $sql_base.create_sql_time( $rec_time[$key] + $add_time*2 + $settings->former_time + $loop_tim );
-			$sql_chk  = $sql_base.' AND starttime>now() AND starttime<addtime( now(), sec_to_time('.( $rec_time[$key]+$add_time + PADDING_TIME ).') )';
+			$bs_sql_cmd  = $bs_sql_base.create_sql_time( $rec_time[$key] + $add_time*2 + $settings->former_time + $loop_tim );
+			$bs_sql_chk  = $bs_sql_base.' AND starttime>now() AND starttime<addtime( now(), sec_to_time('.( $rec_time[$key]+$add_time + PADDING_TIME ).') )';
+			$gr_sql_cmd  = $gr_sql_base.create_sql_time( $rec_time[$key] + $add_time*2 + $settings->former_time + $loop_tim );
+			$gr_sql_chk  = $gr_sql_base.' AND starttime>now() AND starttime<addtime( now(), sec_to_time('.( $rec_time[$key]+$add_time + PADDING_TIME ).') )';
+
 			if( $use_cnt < $usable_tuners ){
 				// 録画重複チェック
-				$revs       = $res_obj->fetch_array( null, null, $sql_cmd );
-				$off_tuners = count( $revs );
+				$bs_revs       = $res_obj->fetch_array( null, null, $bs_sql_cmd );
+				$bs_off_tuners = count( $bs_revs );
+				$off_tuners = $bs_off_tuners;
+//file_put_contents( '/tmp/debug.txt', 'collie.php: $bs_off_tuners='.$bs_off_tuners.' , $off_tuners='.$off_tuners."\n",  FILE_APPEND );
+				if( $grbs_tuners > 0 ){
+					$gr_revs      = $res_obj->fetch_array( null, null, $gr_sql_cmd );
+					$gr_off_tuners = count( $gr_revs );
+					if( ($gr_off_tuners - $gr_tuners) > 0 )
+						$off_tuners = $off_tuners + ($gr_off_tuners - $gr_tuners);
+				}
+//file_put_contents( '/tmp/debug.txt', 'collie.php: $gr_off_tuners='.$gr_off_tuners.' , $tuners='.$tuners.' , use_cnt='.$use_cnt."\n", FILE_APPEND );
 				if( $off_tuners+$use_cnt < $tuners ){
 					$lp_st = time();
 					do{
 						//空チューナー降順探索
 						for( $slc_tuner=$tuners-1; $slc_tuner>=0; $slc_tuner-- ){
+						//for( $slc_tuner=$off_tuners; $slc_tuner<$tuners; $slc_tuner++ ){
 							for( $cnt=0; $cnt<$off_tuners; $cnt++ ){
 								if( $revs[$cnt]['tuner'] == $slc_tuner )
 									continue 2;
 							}
 							if( sem_acquire( $sem_id[$slc_tuner] ) === TRUE ){
-								$shm_name = $slc_tuner + SEM_ST_START;
+								// 専用チューナー、共有チューナーでセマフォを変える
+								if( $slc_tuner < $bs_tuners )
+									$shm_name = $slc_tuner + SEM_ST_START;
+								else
+									$shm_name = ($slc_tuner - $bs_tuners) + SEM_GRST_START;
 								$smph     = shmop_read_surely( $shm_id, $shm_name );
+//file_put_contents( '/tmp/debug.txt', 'collie.php: $slc_tuner='.$slc_tuner.' , $shm_name='.$shm_name.' , $smph='.$smph."\n", FILE_APPEND );
 								if( $smph==2 && $tuners-$off_tuners===1 ){
 									// リアルタイム視聴停止
 									$real_view = (int)trim( file_get_contents( REALVIEW_PID ) );
@@ -126,7 +151,7 @@ if( $usable_tuners !== 0 ){
 									while( sem_release( $sem_id[$slc_tuner] ) === FALSE )
 										usleep( 100 );
 
-									$rr = $res_obj->fetch_array( null, null, $sql_chk );
+									$rr = $res_obj->fetch_array( null, null, $bs_sql_chk );
 									if( count( $rr ) > 0 ){
 										$motion = TRUE;
 										if( $slc_tuner < TUNER_UNIT1 ){
@@ -243,9 +268,16 @@ if( $usable_tuners !== 0 ){
 			}
 			//チューナー空き確認
 			$use = 0;
-			for( $tune_cnt=0; $tune_cnt<$tuners; $tune_cnt++ )
-				if( shmop_read_surely( $shm_id, $tune_cnt+SEM_ST_START ) )
-					$use++;
+			for( $tune_cnt=0; $tune_cnt<$tuners; $tune_cnt++ ){
+				if( $tune_cnt < $bs_tuners){
+					if( shmop_read_surely( $shm_id, $tune_cnt + SEM_ST_START ) )
+						$use++;
+				}
+				else{
+					if( shmop_read_surely( $shm_id, $tune_cnt + SEM_GRST_START - $bs_tuners ) )
+						$use++;
+				}
+			}
 			if( $use_cnt > $use )
 				$use_cnt = $use;
 		}else

@@ -75,11 +75,27 @@ table#reservation_table td.tuner0, #tvtable div.prg_rec0 {border: solid thick re
 table#reservation_table td.tuner1, #tvtable div.prg_rec1 {border: solid thick green;}
 table#reservation_table td.tuner2, #tvtable div.prg_rec2 {border: solid thick blue;}
 table#reservation_table td.tuner3, #tvtable div.prg_rec3 {border: solid thick yellow;}
+table#reservation_table td.tuner4, #tvtable div.prg_rec4 {border: solid thick lime;}
+table#reservation_table td.tuner5, #tvtable div.prg_rec5 {border: solid thick navy;}
+table#reservation_table td.tuner6, #tvtable div.prg_rec6 {border: solid thick aqua;}
+table#reservation_table td.tuner7, #tvtable div.prg_rec7 {border: solid thick fuchsia;}
+table#reservation_table td.tuner8, #tvtable div.prg_rec8 {border: solid thick teal;}
+table#reservation_table td.tuner9, #tvtable div.prg_rec9 {border: solid thick olive;}
+table#reservation_table td.tuner10, #tvtable div.prg_rec10 {border: solid thick maroon;}
+table#reservation_table td.tuner11, #tvtable div.prg_rec11 {border: solid thick purple;}
 
 table#reservation_table td.tuner0 {padding-left:0; padding-right:0;}
 table#reservation_table td.tuner1 {padding-left:0; padding-right:0;}
 table#reservation_table td.tuner2 {padding-left:0; padding-right:0;}
 table#reservation_table td.tuner3 {padding-left:0; padding-right:0;}
+table#reservation_table td.tuner4 {padding-left:0; padding-right:0;}
+table#reservation_table td.tuner5 {padding-left:0; padding-right:0;}
+table#reservation_table td.tuner6 {padding-left:0; padding-right:0;}
+table#reservation_table td.tuner7 {padding-left:0; padding-right:0;}
+table#reservation_table td.tuner8 {padding-left:0; padding-right:0;}
+table#reservation_table td.tuner9 {padding-left:0; padding-right:0;}
+table#reservation_table td.tuner10 {padding-left:0; padding-right:0;}
+table#reservation_table td.tuner11 {padding-left:0; padding-right:0;}
 
 #floatBox4Dialog .prg_title{font-size:120%;font-weight:bold;padding:0.4em 0;text-align:center;}
 #floatBox4Dialog .prg_rec_cfg{background:#EEE;padding:1em 2em;margin:0.4em 0;}
