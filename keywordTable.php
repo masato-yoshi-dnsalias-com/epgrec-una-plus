@@ -1,6 +1,6 @@
 <?php
 include_once('config.php');
-include_once( INSTALL_PATH . '/Smarty/Smarty.class.php' );
+require("smarty/libs/Smarty.class.php");
 include_once( INSTALL_PATH . '/DBRecord.class.php' );
 include_once( INSTALL_PATH . '/reclib.php' );
 include_once( INSTALL_PATH . '/Reservation.class.php' );
@@ -223,7 +223,7 @@ catch( Exception $e ) {
 }
 
 
-$smarty = new Smarty();
+$smarty = new Smarty\Smarty();
 
 $smarty->assign( 'keywords', $keywords );
 $smarty->assign( 'menu_list', link_menu_create() );

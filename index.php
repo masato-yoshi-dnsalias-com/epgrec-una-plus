@@ -2,7 +2,7 @@
 
 include('config.php');
 include_once( INSTALL_PATH . '/DBRecord.class.php' );
-include_once( INSTALL_PATH . '/Smarty/Smarty.class.php' );
+require("smarty/libs/Smarty.class.php");
 include_once( INSTALL_PATH . '/reclib.php' );
 include_once( INSTALL_PATH . '/Settings.class.php' );
 
@@ -95,7 +95,7 @@ if( isset( $_GET['time'] ) && sscanf( $_GET['time'] , '%04d%2d%2d%2d', $y, $mon,
 	$top_time = mktime( date('H'), 0 , 0 );
 $last_time = $top_time + 3600 * $program_length;
 
-$smarty = new Smarty();
+$smarty = new Smarty\Smarty();
 
 // ジャンル一覧
 $genres = DBRecord::createRecords( CATEGORY_TBL );

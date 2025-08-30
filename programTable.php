@@ -1,7 +1,7 @@
 <?php
 include_once('config.php');
 include_once( INSTALL_PATH . '/DBRecord.class.php' );
-include_once( INSTALL_PATH . '/Smarty/Smarty.class.php' );
+require("smarty/libs/Smarty.class.php");
 include_once( INSTALL_PATH . '/Settings.class.php' );
 include_once( INSTALL_PATH . '/Keyword.class.php' );
 
@@ -449,7 +449,7 @@ EXIT_REV:;
 	
 	$types = array();
 	$type_names = '';
-	if( $settings->gr_tuners != 0 ) {
+	if( ($settings->gr_tuners + $settings->grbs_tuners) != 0 ) {
 		$arr = array();
 		$arr['name'] = 'GR';
 		$arr['value'] = 'GR';
@@ -460,7 +460,7 @@ EXIT_REV:;
 			$arr['checked'] =  '';
 		array_push( $types, $arr );
 	}
-	if( $settings->bs_tuners != 0 ) {
+	if( ($settings->bs_tuners + $settings->gr_tuners) != 0 ) {
 		$arr = array();
 		$arr['name'] = 'BS';
 		$arr['value'] = 'BS';
@@ -577,7 +577,7 @@ EXIT_REV:;
 	$autorec_modes[$autorec_mode]['selected'] = 'selected';
 
 
-	$smarty = new Smarty();
+	$smarty = new Smarty\Smarty();
 	$smarty->assign('sitetitle', !$keyword_id ? '番組検索' : '自動録画キーワード編集 №'.$keyword_id );
 	$smarty->assign( 'menu_list', link_menu_create() );
 	$smarty->assign( 'spool_freesize', spool_freesize() );

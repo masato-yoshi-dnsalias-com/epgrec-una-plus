@@ -1,7 +1,7 @@
 <?php
 include_once('config.php');
 include_once( INSTALL_PATH . '/DBRecord.class.php' );
-include_once( INSTALL_PATH . '/Smarty/Smarty.class.php' );
+require("smarty/libs/Smarty.class.php");
 include_once( INSTALL_PATH . '/Reservation.class.php' );
 include_once( INSTALL_PATH . '/Settings.class.php' );
 include_once( INSTALL_PATH . '/reclib.php' );
@@ -453,7 +453,7 @@ try{
 			$TRANSSIZE_SET[$cnt]['selected'] = $cnt===TRANSTREAM_SIZE_DEFAULT ? ' selected' : '';
 	}
 
-	$smarty = new Smarty();
+	$smarty = new Smarty\Smarty();
 	$smarty->assign('sitetitle','録画済一覧' );
 	$smarty->assign( 'menu_list', link_menu_create() );
 	$smarty->assign( 'spool_freesize', spool_freesize() );

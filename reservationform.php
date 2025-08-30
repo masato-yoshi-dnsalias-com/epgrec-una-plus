@@ -1,7 +1,7 @@
 <?php
 include_once('config.php');
 include_once( INSTALL_PATH . "/DBRecord.class.php" );
-include_once( INSTALL_PATH . "/Smarty/Smarty.class.php" );
+require("smarty/libs/Smarty.class.php");
 include_once( INSTALL_PATH . "/reclib.php" );
 include_once( INSTALL_PATH . '/Settings.class.php' );
 $settings = Settings::factory();
@@ -41,7 +41,7 @@ try {
 	array_push( $cats , $cat );
   }
   
-  $smarty = new Smarty();
+  $smarty = new Smarty\Smarty();
   
   $smarty->assign( "syear", $syear );
   $smarty->assign( "smonth", $smonth );

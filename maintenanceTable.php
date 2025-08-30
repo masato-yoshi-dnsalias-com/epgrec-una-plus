@@ -1,7 +1,7 @@
 <?php
 include_once('config.php');
 include_once( INSTALL_PATH . '/DBRecord.class.php' );
-include_once( INSTALL_PATH . '/Smarty/Smarty.class.php' );
+require("smarty/libs/Smarty.class.php");
 include_once( INSTALL_PATH . '/reclib.php' );
 include_once( INSTALL_PATH . '/Settings.class.php' );
 
@@ -173,7 +173,7 @@ function get_channels( $type )
 	}else
 		$file_upload = '';
 
-	$smarty = new Smarty();
+	$smarty = new Smarty\Smarty();
 	$smarty->assign( 'menu_list',   link_menu_create() );
 	$smarty->assign( 'free_size',   number_format( $free_mega/$unit_radix, 1 ) );
 	$smarty->assign( 'free_time',   rate_time( $free_mega ) );

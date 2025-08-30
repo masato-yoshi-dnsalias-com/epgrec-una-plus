@@ -1,7 +1,7 @@
 <?php
 include_once('config.php');
 include_once( INSTALL_PATH . "/DBRecord.class.php" );
-include_once( INSTALL_PATH . "/Smarty/Smarty.class.php" );
+require("smarty/libs/Smarty.class.php");
 include_once( INSTALL_PATH . "/reclib.php" );
 
 $week_tb = array( "日", "月", "火", "水", "木", "金", "土" );
@@ -21,7 +21,7 @@ try {
 	else
 		$autorec = isset( $_GET['autorec'] ) ? $_GET['autorec'] : '1';
 
-	$smarty = new Smarty();
+	$smarty = new Smarty\Smarty();
 	$smarty->assign( "type", $rec->type );
 	$smarty->assign( "channel", $rec->channel );
 	$smarty->assign( "date", date( "Y年m月d日(", $start_time ).$week_tb[date( "w", $start_time )].')' );

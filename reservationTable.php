@@ -1,7 +1,7 @@
 <?php
 include_once('config.php');
 include_once( INSTALL_PATH . '/DBRecord.class.php' );
-include_once( INSTALL_PATH . '/Smarty/Smarty.class.php' );
+require("smarty/libs/Smarty.class.php");
 include_once( INSTALL_PATH . '/reclib.php' );
 include_once( INSTALL_PATH . '/Settings.class.php' );
 
@@ -102,7 +102,7 @@ try{
 	}
 
 
-	$smarty = new Smarty();
+	$smarty = new Smarty\Smarty();
 	$smarty->assign( 'sitetitle','録画予約一覧');
 	$smarty->assign( 'reservations', $reservations );
 	$smarty->assign( 'spool_freesize', spool_freesize() );

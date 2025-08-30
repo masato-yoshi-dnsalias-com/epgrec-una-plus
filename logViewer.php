@@ -1,7 +1,7 @@
 <?php
 include('config.php');
 include_once( INSTALL_PATH . '/DBRecord.class.php' );
-include_once( INSTALL_PATH . '/Smarty/Smarty.class.php' );
+require("smarty/libs/Smarty.class.php");
 include_once( INSTALL_PATH . '/Settings.class.php' );
 include_once( INSTALL_PATH . '/reclib.php' );
 
@@ -86,7 +86,7 @@ foreach( $arr as $low ){
 }
 
 
-$smarty = new Smarty();
+$smarty = new Smarty\Smarty();
 
 $smarty->assign( 'sitetitle' , 'epgrec動作ログ' );
 $smarty->assign( 'logs',       $logs );
