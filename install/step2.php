@@ -1,6 +1,6 @@
 <?php
 include_once("../config.php");
-include_once("../Smarty/Smarty.class.php");
+include_once("../smarty/libs/Smarty.class.php");
 include_once("../Settings.class.php");
 
 $settings = Settings::factory();
