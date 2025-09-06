@@ -1,6 +1,6 @@
 <?php
 include_once('../config.php');
-include_once('../Smarty/Smarty.class.php');
+require("../smarty/libs/Smarty.class.php");
 include_once('../DBRecord.class.php');
 include_once('../Settings.class.php');
 include_once('../reclib.php' );
@@ -77,10 +77,10 @@ cat_maker( $cat, 14, '予備2', 'etc2' );
 cat_maker( $cat, 15, '拡張', 'expand' );
 cat_maker( $cat, 16, 'その他', 'etc' );
 
-$smarty = new Smarty();
-$smarty->template_dir = '../templates/';
-$smarty->compile_dir = '../templates_c/';
-$smarty->cache_dir = '../cache/';
+$smarty = new Smarty\Smarty();
+$smarty->setTemplateDir("../templates/");
+$smarty->setCompileDir("../templates_c/");
+$smarty->setCacheDir("../cache/");
 
 $smarty->assign( 'record_mode', $RECORD_MODE );
 $smarty->assign( 'settings', $settings );
