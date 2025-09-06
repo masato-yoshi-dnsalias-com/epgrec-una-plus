@@ -1,4 +1,5 @@
 <?php
+include_once( INSTALL_PATH . '/Settings.class.php' );
 include_once( INSTALL_PATH . '/Keyword.class.php' );
 include_once( INSTALL_PATH . '/reclib.php' );
 
@@ -8,7 +9,12 @@ define( 'DURATION_UNCERTAINTY', 2 );
 define( 'NEXT_EVENT_UNCERTAINTY', 4 );
 define( 'EXTENDING_TIME', 60 );
 
+
 function garbageClean() {
+
+	$settings = Settings::factory();
+	$log_days = (int)$settings->log_days;
+
 	// 不要なプログラムの削除
 	// 2日以上前のプログラムを消す
 	$arr = array();
@@ -30,9 +36,9 @@ function garbageClean() {
 		}
 	}
 
-	// 8日以上前のログを消す
+	// log_daysで設定された日以前のログを消す
 	$arr = array();
-	$arr = DBRecord::createRecords( LOG_TBL, 'WHERE logtime < subdate( now(), 8 )' );
+	$arr = DBRecord::createRecords( LOG_TBL, 'WHERE logtime <= subdate( now(), '.$log_days.')' );
 	foreach( $arr as $val ) $val->delete();
 }
 

@@ -151,6 +151,11 @@ div.setting { padding: 0px; margin-left: 20px; margin-bottom: 20px;}
 <div><b>録画データ：</b><input type="text" name="temp_data" value="{$settings->temp_data}" size="30" class="required" /></div>
 <div><b>XMLファイル：</b><input type="text" name="temp_xml" value="{$settings->temp_xml}" size="30" class="required" /></div>
 </div>
+
+<h3>epgrec動作ログの保存日数</h3>
+<div class="setting">
+<div class="caption">epgrec動作ログの保存日数を設定します。</div>
+<input type="text" id="id_log_days" name="log_days" value="{$settings->log_days}" size="5" class="required" />日
 </fieldset>
 
 <fieldset>

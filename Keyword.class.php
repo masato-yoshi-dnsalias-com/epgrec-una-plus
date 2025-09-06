@@ -89,14 +89,14 @@ class Keyword extends DBRecord {
 			$types   = '';
 			$t_cnt   = 0;
 			$t_total = 0;
-			if( (int)self::$__settings->gr_tuners ){
+			if( (int)self::$__settings->gr_tuners || (int)self::$__settings->grbs_tuners ){
 				$t_total++;
 				if( $typeGR ){
 					$types .= '"GR"';
 					$t_cnt++;
 				}
 			}
-			if( (int)self::$__settings->bs_tuners ){
+			if( (int)self::$__settings->bs_tuners || (int)self::$__settings->grbs_tuners ){
 				$t_total++;
 				if( $typeBS ){
 					if( $types !== '' )

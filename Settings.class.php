@@ -22,6 +22,11 @@ class Settings extends SimpleXMLElement {
 				$obj->autorec_mode = 1;
 				$obj->save();
 			}
+			//GR/BS共通チューナーの台数
+			if( $obj->exists('grbs_tuners') == 0 ) {
+				$obj->grbs_tuners = 0;
+				$obj->save();
+			}
 			// CSの録画
 			if( $obj->exists('cs_rec_flg') == 0 ) {
 				$obj->cs_rec_flg = 0;
@@ -52,6 +57,11 @@ class Settings extends SimpleXMLElement {
 				$obj->shutdown = '/sbin/shutdown';
 				$obj->save();
 			}
+			// epgrec動作ログの保存日数
+			if( $obj->exists('log_days') == 0 ) {
+				$obj->log_days = 7;
+				$obj->save();
+			}
 			return $obj;
 		}
 		else {
@@ -79,6 +89,9 @@ class Settings extends SimpleXMLElement {
 			
 			if(TUNER_UNIT1>0) $xml->gr_tuners = TUNER_UNIT1;
 			else $xml->gr_tuners = 1;
+
+			if(defined('GRBS_TUNERS')) $xml->grbs_tuners = GRBS_TUNERS;
+			else $xml->grbs_tuners = 0;
 
 			if(defined('CS_REC_FLG')) $xml->cs_rec_flg = CS_REC_FLG;
 			else $xml->cs_rec_flg = 0;
@@ -170,6 +183,9 @@ class Settings extends SimpleXMLElement {
 
 			// シャットダウンコマンド
 			$xml->shutdown = '/sbin/shutdown';
+
+			// epgrec動作ログの保存日数
+			$xml->log_days = 7;
 			
 			$xml->save();
 			
