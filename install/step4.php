@@ -12,6 +12,7 @@ $BS_tuners = (int)$settings->bs_tuners;
 $GR_tuners = (int)$settings->gr_tuners;
 $GRBS_tuners = (int)$settings->grbs_tuners;
 $CS_flag   = $settings->cs_rec_flg!=0 ? TRUE : FALSE;
+
 // XML取り込みは、BS 210sec(atomD525) CS 140sec(仮定)を想定
 if( ($BS_tuners + $GRBS_tuners) > 0 ){
 	if( !$CS_flag ){
@@ -23,6 +24,15 @@ if( ($BS_tuners + $GRBS_tuners) > 0 ){
 		$bs_tim = array( 0, 750, 510, 330 );	// XML取り込み２並列
 	}
 }
+else{
+	$bs_max = 0;
+}
+
+
+// GR/BS共用チューナーのみで地上波と同時受信が出来ない場合に最大BSチューナー数を減らす
+if($bs_max === $GRBS_tuners && $BS_tuners <= 0 )
+	$bs_max = $bs_max - 1;
+
 $gr_rec_tm = FIRST_REC + $settings->rec_switch_time + 1;
 $GR_num = count( $GR_CHANNEL_MAP );
 if( $BS_tuners || $GRBS_tuners ){
@@ -43,8 +53,15 @@ if( $BS_tuners || $GRBS_tuners ){
 }
 
 if( $GR_tuners || $GRBS_tuners){
-	//$shepherd_gr_tm = (int)ceil( $GR_num / ($GR_tuners + $BS_tuners > $bs_max ? $GRBS_tuners : ($BS_tuners - $bs_max) > 0 ? $GRBS_tuners : ($GRBS_tuners - ($BS_tuners - $bs_max)))) * $gr_rec_tm;
-	$shepherd_gr_tm = (int)ceil( $GR_num / ($GR_tuners + $BS_tuners > $bs_max ? $GRBS_tuners : (($GRBS_tuners - $bs_maxr) > 0 ? $GRBS_tuners : ($GRBS_tuners - ($BS_tuners - $bs_max))))) * $gr_rec_tm;
+	if( ($bs_max - $BS_tuners) > 0 ){
+		if( $BS_tuners > 0 )
+			$shepherd_gr_tm = (int)ceil( $GR_num / (($GR_tuners + $GRBS_tuners) - ($BS_tuners - $bs_max))) * $gr_rec_tm;
+		else
+			$shepherd_gr_tm = (int)ceil( $GR_num / (($GR_tuners + $GRBS_tuners) - $bs_max)) * $gr_rec_tm;
+	}
+	else{
+		$shepherd_gr_tm = (int)ceil( $GR_num / ($GR_tuners + $GRBS_tuners) ) * $gr_rec_tm;
+	}
 	$getepg_gr_tm   = $GR_num * ( 60 + 10 );
 }else{
 	$shepherd_gr_tm = 0;

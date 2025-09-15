@@ -460,7 +460,7 @@ EXIT_REV:;
 			$arr['checked'] =  '';
 		array_push( $types, $arr );
 	}
-	if( ($settings->bs_tuners + $settings->gr_tuners) != 0 ) {
+	if( ($settings->bs_tuners + $settings->grbs_tuners) != 0 ) {
 		$arr = array();
 		$arr['name'] = 'BS';
 		$arr['value'] = 'BS';
