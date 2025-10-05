@@ -133,22 +133,22 @@ function exit_shephewrd(){
 		$bs_pt1   = 0;
 		$grbs_pt1 = 0;
 	}
-file_put_contents( '/tmp/debug.txt', '$gr_pt1='.$gr_pt1.',$bs_pt1='.$bs_pt1."\n", FILE_APPEND );
-file_put_contents( '/tmp/debug.txt', '$GR_tuners='.$GR_tuners.',$GRBS_tuners='.$GRBS_tuners.',TUNER_UNIT1='.TUNER_UNIT1."\n", FILE_APPEND );
+//file_put_contents( '/tmp/debug.txt', '$gr_pt1='.$gr_pt1.',$bs_pt1='.$bs_pt1."\n", FILE_APPEND );
+//file_put_contents( '/tmp/debug.txt', '$GR_tuners='.$GR_tuners.',$GRBS_tuners='.$GRBS_tuners.',TUNER_UNIT1='.TUNER_UNIT1."\n", FILE_APPEND );
 	for( $tuner=0; $tuner<($GR_tuners + $GRBS_tuners) - TUNER_UNIT1; $tuner++ ){
 		if( $rec_cmds[$OTHER_TUNERS_CHARA['GR'][$tuner]['reccmd']]['epgTs'] )
 			$gr_pt1++;
-file_put_contents( '/tmp/debug.txt', '$gr_pt1='.$gr_pt1."\n", FILE_APPEND );
+//file_put_contents( '/tmp/debug.txt', '$gr_pt1='.$gr_pt1."\n", FILE_APPEND );
 	}
 	for( $tuner=0; $tuner<($BS_tuners + $GRBS_tuners) - TUNER_UNIT1; $tuner++ ){
 		if( $rec_cmds[$OTHER_TUNERS_CHARA['BS'][$tuner]['reccmd']]['epgTs'] )
 			$bs_pt1++;
-file_put_contents( '/tmp/debug.txt', '$bs_pt1='.$bs_pt1."\n", FILE_APPEND );
+//file_put_contents( '/tmp/debug.txt', '$bs_pt1='.$bs_pt1."\n", FILE_APPEND );
 	}
-file_put_contents( '/tmp/debug.txt', '$gr_pt1='.$gr_pt1.',$bs_pt1='.$bs_pt1."\n", FILE_APPEND );
+//file_put_contents( '/tmp/debug.txt', '$gr_pt1='.$gr_pt1.',$bs_pt1='.$bs_pt1."\n", FILE_APPEND );
 	$gr_oth = ($GR_tuners + $GRBS_tuners) - $gr_pt1;
 	$bs_oth = ($BS_tuners + $GRBS_tuners) - $bs_pt1;
-file_put_contents( '/tmp/debug.txt', '$gr_oth='.$gr_oth.',$bs_oth='.$bs_oth."\n", FILE_APPEND );
+//file_put_contents( '/tmp/debug.txt', '$gr_oth='.$gr_oth.',$bs_oth='.$bs_oth."\n", FILE_APPEND );
 	if( $gr_pt1>0 || $bs_pt1>0 ){
 		if( $gr_oth && $tmpdrive_size<=(GR_OTH_EPG_SIZE+GR_XML_SIZE) ){
 			reclog( 'shepherd.php::テンポラリー容量が不十分なためEPG更新が出来ません。空き容量を確保してください。', EPGREC_ERR );
@@ -340,7 +340,7 @@ ST_ESP:
 
 	// BS/CSを処理する
 	if( $bs_use > 0 ){
-file_put_contents( '/tmp/debug.txt', INSTALL_PATH.'/collie.php '.$bs_use."\n", FILE_APPEND );
+//file_put_contents( '/tmp/debug.txt', INSTALL_PATH.'/collie.php '.$bs_use."\n", FILE_APPEND );
 		$proST = dog_release( INSTALL_PATH.'/collie.php '.$bs_use );
 		if( $gr_bs_sepa ){
 			//セパレート･モード時のウェイト
@@ -370,7 +370,7 @@ file_put_contents( '/tmp/debug.txt', INSTALL_PATH.'/collie.php '.$bs_use."\n", F
 	// 地上波を処理する
 	if( $gr_use > 0 ){
 		$gr_use=($BS_tuners - $bs_max) > 0 ? $gr_use : $gr_use + ($BS_tuners - $bs_max);
-file_put_contents( '/tmp/debug.txt', INSTALL_PATH.'/sheepdog.php '.$gr_use."\n", FILE_APPEND );
+//file_put_contents( '/tmp/debug.txt', INSTALL_PATH.'/sheepdog.php '.$gr_use."\n", FILE_APPEND );
 		$proGR    = dog_release( INSTALL_PATH.'/sheepdog.php '.$gr_use );
 		$sleep_tm = (int)ceil( $GR_num / $gr_use ) * FIRST_REC;
 	}else{
