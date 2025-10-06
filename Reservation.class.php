@@ -1520,6 +1520,7 @@ LOG_THROW:;
 				fwrite($pipes[0], $gen_thumbnail."\n" );
 			}
 			fwrite($pipes[0], 'rm /tmp/tuner_'.$rrec->id."\n" );		//ATジョブのPID保存ファイルを削除
+			fwrite($pipes[0], "rm -f './".$add_dir."/tmp'\n" );             //HDD spin-up ファイルを削除
 			fclose($pipes[0]);
 			// 標準エラーを取る
 			$rstring = stream_get_contents( $pipes[2]);
