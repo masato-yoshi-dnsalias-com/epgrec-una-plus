@@ -41,6 +41,9 @@ try {
 	array_push( $cats , $cat );
   }
   
+  // ディレクトリ
+  $dir_collection = get_directrys( INSTALL_PATH.$settings->spool );
+
   $smarty = new Smarty\Smarty();
   
   $smarty->assign( "syear", $syear );
@@ -71,6 +74,8 @@ try {
   
   $smarty->assign( "program_id", $prec->id );
   
+  $smarty->assign( 'dir_collection' , $dir_collection );
+
   $smarty->display("reservationform.html");
 }
 catch( exception $e ) {

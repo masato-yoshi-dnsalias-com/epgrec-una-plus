@@ -129,7 +129,8 @@ class Reservation {
 		$mode = 0,				// 録画モード
 		$discontinuity = 0,		// 隣接禁止フラグ
 		$dirty = 0,				// ダーティフラグ
-		$man_priority = MANUAL_REV_PRIORITY	// 優先度
+		$man_priority = MANUAL_REV_PRIORITY,	// 優先度
+		$rec_directory = ''                     // 録画ディレクトリ
 	) {
 		global $rec_cmds,$OTHER_TUNERS_CHARA,$EX_TUNERS_CHARA;
 		$settings = Settings::factory();
@@ -601,7 +602,8 @@ LOG_THROW:;
 									$prev_priority,
 									$prev_overlap,
 									$prev_discontinuity,
-									$prev_shortened
+									$prev_shortened,
+									$rec_directory				// 保存ディレクトリ
 									);
 							}
 							catch( Exception $e ) {
@@ -639,7 +641,8 @@ LOG_THROW:;
 													$prev_priority,
 													$prev_overlap,
 													$prev_discontinuity,
-													$prev_shortened
+													$prev_shortened,
+													$rec_directory				// 保存ディレクトリ
 													);
 											}
 											catch( Exception $e ) {
@@ -686,7 +689,8 @@ LOG_THROW:;
 													$prev_priority,
 													$prev_overlap,
 													$prev_discontinuity,
-													$prev_shortened
+													$prev_shortened,
+													$rec_directory				// 保存ディレクトリ
 													);
 											}
 											catch( Exception $e ) {
@@ -738,7 +742,8 @@ LOG_THROW:;
 											$prev_priority,
 											$prev_overlap,
 											$prev_discontinuity,
-											$prev_shortened
+											$prev_shortened,
+											$rec_directory				// 保存ディレクトリ
 											);
 									}
 									catch( Exception $e ) {
@@ -825,7 +830,8 @@ LOG_THROW:;
 						$priority,
 						$overlap,
 						$discontinuity,
-						FALSE
+						FALSE,
+						$rec_directory	// 保存ディレクトリ
 					);
 				}
 				catch( Exception $e ) {
@@ -855,7 +861,8 @@ LOG_THROW:;
 		$priority,				// 優先度
 		$overlap,				// 重複予約可否
 		$discontinuity,				// 隣接短縮可否
-		$shortened				// 隣接短縮フラグ
+		$shortened,				// 隣接短縮フラグ
+		$rec_directory = ''                 // 録画ディレクトリー
 	) {
 		global $RECORD_MODE,$rec_cmds,$OTHER_TUNERS_CHARA,$EX_TUNERS_CHARA;
 		$settings    = Settings::factory();
@@ -1384,6 +1391,9 @@ LOG_THROW:;
 
 			// ディレクトリ付加
 			$add_dir = $autorec && $keyword->directory!='' ? $keyword->directory.'/' : '';
+			if( $add_dir == '' && $rec_directory !== '' ){
+				$add_dir = $rec_directory.'/';
+			}
 
 			// 文字コード変換
 			if( defined( 'FILESYSTEM_ENCODING' ) ) {
@@ -1526,7 +1536,7 @@ LOG_THROW:;
 			$rstring = stream_get_contents( $pipes[2]);
 			
 			fclose( $pipes[2] );
-		    fclose( $pipes[1] );
+			fclose( $pipes[1] );
 			proc_close( $process );
 			// job番号を取り出す
 			$rarr = array();

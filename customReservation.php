@@ -26,6 +26,7 @@ if(!(
    isset($_POST['title'])       &&
    isset($_POST['description']) &&
    isset($_POST['category_id']) &&
+   isset($_POST['rec_directory']) &&
    isset($_POST['record_mode']) &&
    isset($_POST['discontinuity']) &&
    isset($_POST['priority'])
@@ -48,6 +49,7 @@ $channel_id = $_POST['channel_id'];
 $title = $_POST['title'];
 $description = $_POST['description'];
 $category_id = $_POST['category_id'];
+$rec_directory = $_POST['rec_directory'];
 $mode = $_POST['record_mode'];
 $discontinuity = $_POST['discontinuity'];
 $priority = $_POST['priority'];
@@ -67,7 +69,8 @@ try{
 		$mode,	// 録画モード
 		$discontinuity,
 		1,		// ダーティフラグ
-		$priority
+		$priority,
+		$rec_directory   // 保存ディレクトリ
 	);
 }
 catch( Exception $e ) {

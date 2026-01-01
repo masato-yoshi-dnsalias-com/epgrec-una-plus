@@ -47,4 +47,11 @@
       {/foreach}
       </select>
     </div>
+<div>
+<span>保存ディレクトリー/video/</span>
+      {$spool|escape}<input type="text" size="80" name="rec_directory" id="id_rec_directory" value="{$directory|escape}" class="required" list="example"></div>
+<!-- HTML5以降 -->
+<datalist id="example">
+  {$dir_collection}
+</datalist>
 </form>
