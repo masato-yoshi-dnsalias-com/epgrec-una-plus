@@ -927,7 +927,7 @@ LOG_THROW:;
 					}else
 						if( $smph == 1 ){
 							// EPG受信停止
-							$rec_trace = $settings->temp_data.'_'.$epg_smf_type.$tuner;
+							$rec_trace = $settings->temp_data.'_'.$epg_sem_type.$tuner;
 							$ps_output = shell_exec( PS_CMD );
 							$rarr      = explode( "\n", $ps_output );
 							for( $cc=0; $cc<count($rarr); $cc++ ){
