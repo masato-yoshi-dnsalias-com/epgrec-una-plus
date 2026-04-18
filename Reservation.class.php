@@ -1387,7 +1387,8 @@ LOG_THROW:;
 */
 			// UTF-8に対応できない環境があるようなのでmb_ereg_replaceに戻す
 //			$filename = mb_ereg_replace("[ \./\*:<>\?\\|()\'\"&]","_", trim($filename) );
-			$filename = mb_ereg_replace( "[\\/\'\"]", '_', trim($filename) );
+			$filename = mb_ereg_replace( "!\?", hex2bin("E28189"), trim($filename) );
+			$filename = mb_ereg_replace( "[:\?\\/\'\"]", '_', trim($filename) );
 
 			// ディレクトリ付加
 			$add_dir = $autorec && $keyword->directory!='' ? $keyword->directory.'/' : '';
