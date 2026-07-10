@@ -74,7 +74,8 @@ if( isset( $_GET['ch'] ) ){
 				$stream_mode = FALSE;
 				$trans_op    = '';
 			}
-			$filename = htmlspecialchars( end( explode( '/', $trans_set->path ) ) );
+			$path_parts = explode( '/', $trans_set->path );
+			$filename = htmlspecialchars( end( $path_parts ) );
 		}else{
 			if( isset( $_GET['trans'] ) ){
 				$target_path = '';
@@ -85,7 +86,8 @@ if( isset( $_GET['ch'] ) ){
 				$stream_mode = $rrec->complete==0;
 				$trans_op    = '';
 			}
-			$filename = htmlspecialchars( end( explode( '/', $rrec->path ) ) );
+			$path_parts = explode( '/', $rrec->path );
+			$filename = htmlspecialchars( end( $path_parts ) ) );
 		}
 
 		$start_time = toTimestamp($rrec->starttime);

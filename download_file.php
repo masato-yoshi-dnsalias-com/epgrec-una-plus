@@ -40,7 +40,8 @@ if( isset( $_GET['reserve_id'] ) ){
 				if( $duration > $end_time )
 					$send_cnt -= (int)( ( $all_cnt * ( $duration - $end_time ) ) / ( $duration + $settings->former_time + $settings->extra_time ) );
 
-				$html_name = htmlspecialchars( end( explode( '/', $temp_ts ) ) );
+				$path_parts = explode( '/', $temp_ts ) );
+				$html_name = htmlspecialchars( end( $path_parts ) );
 				while( ob_get_level() > 0 )
 					ob_end_clean();
 //				header('Content-Description: File Transfer');
@@ -81,7 +82,8 @@ if( isset( $_GET['trans_id'] ) ){
 		if( $file_size ){
 			$fp = @fopen( $temp_ts, 'r' );
 			if( $fp !== FALSE ) {
-				$html_name = htmlspecialchars( end( explode( '/', $temp_ts ) ) );
+				$path_parts = explode( '/', $temp_ts );
+				$html_name = htmlspecialchars( end( $path_parts ) );
 				while( ob_get_level() > 0 )
 					ob_end_clean();
 //				header('Content-Description: File Transfer');

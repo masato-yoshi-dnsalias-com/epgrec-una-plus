@@ -144,7 +144,8 @@ if( isset($_POST['do_delete']) ){
 				@unlink( $reced );
 		}
 		// サムネイル削除
-		$thumbs = INSTALL_PATH.$settings->thumbs.'/'.end(explode( '/', $rec['path'] )).'.jpg';
+		$path_parts = explode( '/', $rec['path'] );
+		$thumbs = INSTALL_PATH.$settings->thumbs.'/'.end($path_parts).'.jpg';
 		if( file_exists( $thumbs ) )
 			@unlink( $thumbs );
 
@@ -370,7 +371,8 @@ try{
 			$arr['title']       = htmlspecialchars($r['title'],ENT_QUOTES);
 			$arr['description'] = htmlspecialchars($r['description'],ENT_QUOTES);
 			if( file_exists(INSTALL_PATH.$settings->thumbs.'/'.substr(strchr($r['path'],'/' ),1).'.jpg') )
-				$arr['thumb'] = '<img src="'.$view_url.$settings->thumbs.'/'.rawurlencode(end(explode( '/', $r['path'] ))).'.jpg" />';
+				$path_parts = explode( '/', $r['path'] );
+				$arr['thumb'] = '<img src="'.$view_url.$settings->thumbs.'/'.rawurlencode(end($path_parts)).'.jpg" />';
 			else
 				$arr['thumb'] = '';
 			$arr['keyword']     = putProgramHtml( $r['title'], '*', 0, $r['category_id'], 16 );

@@ -52,7 +52,8 @@ if( isset($_GET['reserve_id']) ){
 				@unlink( $reced );
 		}
 		// サムネイル削除
-		$thumbs = INSTALL_PATH.$settings->thumbs.'/'.end(explode( '/', $rec[0]['path'] )).'.jpg';
+		$path_parts = explode( '/', $rec[0]['path'] );
+		$thumbs = INSTALL_PATH.$settings->thumbs.'/'.end($path_parts).'.jpg';
 		if( file_exists( $thumbs ) )
 			@unlink( $thumbs );
 		// 分割予約禁止フラグ準備

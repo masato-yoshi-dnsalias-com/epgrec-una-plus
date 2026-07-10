@@ -66,7 +66,8 @@ function trans_job_set( $rrec, $tran_ex )
 	$wrt_set['mode']        = $tran_ex['mode'];
 	$wrt_set['ts_del']      = $tran_ex['ts_del'];
 	// ファイル名生成 文字数チェックは行なわない。
-	$ts_name         = end( explode( '/', $rrec->path ) );
+	$path_parts      = explode( '/', $rrec->path );
+	$ts_name         = end( $path_parts );
 	$ts_suffix       = strpos( $ts_name, $RECORD_MODE[$tran_ex['mode']]['suffix'] )!==FALSE ? $RECORD_MODE[$tran_ex['mode']]['suffix'] : $RECORD_MODE[$rrec->mode]['suffix'];
 	$trans_name      = str_replace( $ts_suffix, $RECORD_MODE[$tran_ex['mode']]['tsuffix'], $ts_name );
 	$wrt_set['path'] = str_replace( '%VIDEO%', INSTALL_PATH.$settings->spool, TRANS_ROOT ).($tran_ex['dir']!='' ? '/'.$tran_ex['dir'] : '').'/'.$trans_name;

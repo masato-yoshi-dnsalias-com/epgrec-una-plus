@@ -376,7 +376,8 @@ SEND_STREAM:
 		try{
 			$trans_set   = new DBRecord( TRANSCODE_TBL, 'id', $_GET['trans_id'] );
 			$target_path = $trans_set->path;
-			$filename    = htmlspecialchars( end( explode( '/', $target_path ) ) );
+			$path_parts  = explode( '/', $target_path );
+			$filename    = htmlspecialchars( end( $path_parts ) );
 			$size        = 3 * 1024 * 1024 * $duration;	// いいかげん
 			$container   = codec_format( $RECORD_MODE[$trans_set->mode]['format'] );
 		}catch(exception $e ){
@@ -386,7 +387,8 @@ SEND_STREAM:
 	}else{
 		// TSファイル
 		$target_path = INSTALL_PATH.$settings->spool.'/'.$path;
-		$filename    = htmlspecialchars( end( explode( '/', $path ) ) );
+		$path_parts  = explode( '/', $path );
+		$filename    = htmlspecialchars( end( $path_parts ) );
 		$size        = 3 * 1024 * 1024 * $duration;	// 1秒あたり3MBと仮定
 	}
 
