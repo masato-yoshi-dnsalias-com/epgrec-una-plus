@@ -28,7 +28,7 @@
 		rec:function(id){
 			var df = 0;
 
-			if( $('#delete_file').attr('checked') ) {
+			if( $('#delete_file').prop('checked') ) {
 				df = 1;
 			}
 			$('#floatBox4Dialog').dialog('close');
