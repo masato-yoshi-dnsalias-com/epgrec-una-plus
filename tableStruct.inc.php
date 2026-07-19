@@ -137,7 +137,7 @@ define( "LOG_STRUCT",
 	"id integer not null auto_increment primary key".				// ID
 	",logtime  datetime not null default '1970-01-01 00:00:00'".	// 記録日時
 	",level integer not null default '0'".							// エラーレベル
-	",message varchar(512) not null default ''".
+	",message varchar(4096) not null default ''".
 	",index log_level_idx (level,logtime)".
 	""
 );
